@@ -1,7 +1,7 @@
-package shtykh.bot.booleaner;
+package shtykh.parrots.onlyif;
 
 import org.json.JSONException;
-import shtykh.bot.poster.Poster;
+import shtykh.parrots.poster.Poster;
 import shtykh.tweets.TwitterAPIException;
 
 import java.io.IOException;

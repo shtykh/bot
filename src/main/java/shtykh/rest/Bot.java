@@ -3,8 +3,13 @@ package shtykh.rest;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
-import shtykh.bot.poster.Poster;
-import shtykh.rest.parrot.Parrot;
+import org.springframework.stereotype.Component;
+import shtykh.parrots.*;
+import shtykh.parrots.onlyif.LocationIsChanged;
+import shtykh.parrots.poster.Poster;
+import shtykh.parrots.what.Sweets;
+import shtykh.tweets.TwitterAPIException;
+import shtykh.ui.UiUtil;
 
 import javax.swing.*;
 import javax.ws.rs.GET;
@@ -15,11 +20,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.awt.*;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by shtykh on 29/03/15.
  */
+@Component
 @Path("/parrots")
 public class Bot extends JFrame {
 	private static final Logger log = Logger.getLogger(Bot.class);
@@ -27,15 +34,30 @@ public class Bot extends JFrame {
 	
 	@Autowired
 	private Poster poster;
-	@Autowired
-	private String host; 
-	@Autowired
-	private String port;
+	
+	private static final String HOST = "http://localhost"; 
+	private static final String PORT = "8080";
 
 	public void init() throws HeadlessException, IOException, JSONException {
-		log.info("Starting bot");
+		parrots = new ArrayList<>();
+		parrots.add(new FoodParrot(poster));
+		parrots.add(new HangoverParrot(poster));
+		parrots.add(new LocationParrot(poster, new LocationIsChanged("Москва")));
+		parrots.add(new SweetsParrot(poster, new Sweets()));
+
+		log.info("Starting parrots");
 		for (Parrot parrot : parrots) {
 			parrot.start();
+		}
+	}
+
+	public static void main(String[] args)
+			throws TwitterAPIException, JSONException, IOException, InterruptedException {
+		try {
+			new Bot().init();
+		} catch (IOException | JSONException e) {
+			log.error(e);
+			UiUtil.showError("Ошибка при инициализации бота", e, null);
 		}
 	}
 
@@ -101,11 +123,8 @@ public class Bot extends JFrame {
 	}
 	
 	private String getPath(String suffix, String name) {
-		String href = host + ":" + port + "/bot/rest/parrots/" + suffix;
+		String href = HOST + ":" + PORT + "/bot/rest/parrots/" + suffix;
 		return "<a href="+ href + ">" + name + "</a>";
 	}
-
-	public void setParrots(List<Parrot> parrots) {
-		this.parrots = parrots;
-	}
+	
 }

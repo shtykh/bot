@@ -1,4 +1,4 @@
-package shtykh.bot.longer;
+package shtykh.parrots.when;
 
 import org.apache.log4j.Logger;
 

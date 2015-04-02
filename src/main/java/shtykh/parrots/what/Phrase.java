@@ -1,4 +1,4 @@
-package shtykh.bot.stringer;
+package shtykh.parrots.what;
 
 import static shtykh.Util.random;
 

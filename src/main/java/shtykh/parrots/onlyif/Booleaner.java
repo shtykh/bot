@@ -1,4 +1,4 @@
-package shtykh.bot.booleaner;
+package shtykh.parrots.onlyif;
 
 import org.json.JSONException;
 import shtykh.tweets.TwitterAPIException;

@@ -1,15 +1,17 @@
-package shtykh.rest.parrot;
+package shtykh.parrots;
 
-import shtykh.bot.booleaner.MoreLikelyOnWeekend;
-import shtykh.bot.longer.OnceIn;
+import shtykh.parrots.onlyif.MoreLikelyOnWeekend;
+import shtykh.parrots.poster.Poster;
+import shtykh.parrots.when.OnceIn;
 
 /**
  * Created by shtykh on 01/04/15.
  */
 public class HangoverParrot extends Parrot {
-	public HangoverParrot() {
+	public HangoverParrot(Poster poster) {
 		super(	() -> "#водички", new OnceIn(1, 2),
 				new MoreLikelyOnWeekend(0.7, 0.2), 
+				poster, 
 				"HangoverParrot");
 	}
 }
