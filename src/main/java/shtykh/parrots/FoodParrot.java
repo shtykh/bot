@@ -1,9 +1,9 @@
 package shtykh.parrots;
 
 import shtykh.parrots.onlyif.Probably;
+import shtykh.parrots.poster.Poster;
 import shtykh.parrots.what.Phrase;
 import shtykh.parrots.when.OnceIn;
-import shtykh.tweets.TwitterClient;
 
 /**
  * Created by shtykh on 29/03/15.
@@ -29,7 +29,7 @@ public class FoodParrot extends Parrot {
 				" #ОфигевшийОпоссумОленька",
 				"");
 	}
-	public FoodParrot(TwitterClient tc) {
-		super(food, new OnceIn(1, 3), new Probably(0.7), tc, "FoodParrot");
+	public FoodParrot(Poster poster) {
+		super(food, new OnceIn(1, 3), new Probably(0.7), poster, "FoodParrot");
 	}
 }

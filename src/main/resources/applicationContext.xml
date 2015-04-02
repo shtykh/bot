@@ -9,5 +9,6 @@
 	<context:component-scan base-package="shtykh.rest"/>
 	
 	<bean id="functionBO" class="shtykh.funk.impl.SummBO" />
-
+    <bean id="poster" class="shtykh.parrots.poster.TwitterPoster"/>
+    <bean id="bot" class="shtykh.rest.Bot" init-method="init"></bean>
 </beans>

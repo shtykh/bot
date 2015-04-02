@@ -1,8 +1,8 @@
 package shtykh.parrots.onlyif;
 
 import org.json.JSONException;
+import shtykh.parrots.poster.Poster;
 import shtykh.tweets.TwitterAPIException;
-import shtykh.tweets.TwitterClient;
 
 import java.io.IOException;
 
@@ -11,7 +11,7 @@ import java.io.IOException;
  */
 public class LocationIsChanged implements Booleaner {
 	private String cityName;
-	private TwitterClient tc;
+	private Poster poster;
 
 	public LocationIsChanged() {
 		this("");
@@ -23,8 +23,8 @@ public class LocationIsChanged implements Booleaner {
 
 	@Override
 	public boolean nextBoolean() throws TwitterAPIException, JSONException, IOException {
-		String newCityName = tc.getLocation().getName();
-		boolean changed = cityName.equals(newCityName);
+		String newCityName = poster.getLocation().getName();
+		boolean changed = !cityName.equals(newCityName);
 		cityName = newCityName;
 		return changed;
 	}
@@ -33,8 +33,8 @@ public class LocationIsChanged implements Booleaner {
 		return cityName;
 	}
 
-	public void setTwitterClient(TwitterClient twitterClient) {
-		this.tc = twitterClient;
+	public void setPoster(Poster poster) {
+		this.poster = poster;
 	}
 	
 }
