@@ -1,11 +1,12 @@
-package shtykh.parrots;
+package shtykh.rest.parrot;
 
 
 import org.apache.log4j.Logger;
-import shtykh.parrots.onlyif.Booleaner;
-import shtykh.parrots.poster.Poster;
-import shtykh.parrots.what.Stringer;
-import shtykh.parrots.when.Longer;
+import org.springframework.beans.factory.annotation.Autowired;
+import shtykh.bot.booleaner.Booleaner;
+import shtykh.bot.longer.Longer;
+import shtykh.bot.poster.Poster;
+import shtykh.bot.stringer.Stringer;
 import shtykh.tweets.TwitterAPIException;
 
 import java.util.Date;
@@ -19,7 +20,9 @@ public abstract class Parrot extends Thread {
 	private final Stringer what;
 	private final Longer when;
 	private final Booleaner ifWhat;
-	private final Poster poster;
+	
+	@Autowired
+	protected Poster poster;
 
 	private LinkedList<String> postsLog;
 	private Date next;
@@ -28,11 +31,10 @@ public abstract class Parrot extends Thread {
 	public Parrot(Stringer what,
 				  Longer when,
 				  Booleaner ifWhat,
-				  Poster poster, String name) {
+				  String name) {
 		this.what = what;
 		this.when = when;
 		this.ifWhat = ifWhat;
-		this.poster = poster;
 		this.name = name;
 		postsLog = new LinkedList<>();
 		setDaemon(true);

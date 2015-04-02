@@ -1,18 +1,16 @@
-package shtykh.parrots;
+package shtykh.rest.parrot;
 
-import shtykh.parrots.onlyif.LocationIsChanged;
-import shtykh.parrots.poster.Poster;
-import shtykh.parrots.when.OnceIn;
+import shtykh.bot.booleaner.LocationIsChanged;
+import shtykh.bot.longer.OnceIn;
 
 /**
  * Created by shtykh on 01/04/15.
  */
 public class LocationParrot extends Parrot {
-	public LocationParrot(Poster poster, LocationIsChanged locationIsChanged) {
+	public LocationParrot(LocationIsChanged locationIsChanged) {
 		super(() -> getCityName(locationIsChanged) + ", я в тебе", 
 				new OnceIn(2, 3), 
-				locationIsChanged, 
-				poster, 
+				locationIsChanged,
 				"LocationParrot");
 		locationIsChanged.setPoster(poster);
 	}

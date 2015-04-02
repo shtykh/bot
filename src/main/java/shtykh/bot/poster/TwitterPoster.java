@@ -1,4 +1,4 @@
-package shtykh.parrots.poster;
+package shtykh.bot.poster;
 
 import org.apache.log4j.Logger;
 import org.json.JSONException;

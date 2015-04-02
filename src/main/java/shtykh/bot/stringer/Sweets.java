@@ -1,7 +1,7 @@
-package shtykh.parrots.what;
+package shtykh.bot.stringer;
 
 import org.apache.log4j.Logger;
-import shtykh.parrots.onlyif.Booleaner;
+import shtykh.bot.booleaner.Booleaner;
 
 import static shtykh.Util.random;
 

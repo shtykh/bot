@@ -1,4 +1,4 @@
-package shtykh.parrots.when;
+package shtykh.bot.longer;
 
 /**
  * Created by shtykh on 29/03/15.

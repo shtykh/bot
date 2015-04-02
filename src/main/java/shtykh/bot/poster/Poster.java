@@ -1,4 +1,4 @@
-package shtykh.parrots.poster;
+package shtykh.bot.poster;
 
 import shtykh.tweets.Location;
 

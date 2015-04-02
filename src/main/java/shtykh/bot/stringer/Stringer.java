@@ -1,4 +1,4 @@
-package shtykh.parrots.what;
+package shtykh.bot.stringer;
 
 /**
  * Created by shtykh on 29/03/15.

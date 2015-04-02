@@ -1,9 +1,8 @@
-package shtykh.parrots;
+package shtykh.rest.parrot;
 
-import shtykh.parrots.onlyif.Probably;
-import shtykh.parrots.poster.Poster;
-import shtykh.parrots.what.Phrase;
-import shtykh.parrots.when.OnceIn;
+import shtykh.bot.booleaner.Probably;
+import shtykh.bot.longer.OnceIn;
+import shtykh.bot.stringer.Phrase;
 
 /**
  * Created by shtykh on 29/03/15.
@@ -29,7 +28,7 @@ public class FoodParrot extends Parrot {
 				" #ОфигевшийОпоссумОленька",
 				"");
 	}
-	public FoodParrot(Poster poster) {
-		super(food, new OnceIn(1, 3), new Probably(0.7), poster, "FoodParrot");
+	public FoodParrot() {
+		super(food, new OnceIn(1, 3), new Probably(0.7), "FoodParrot");
 	}
 }
