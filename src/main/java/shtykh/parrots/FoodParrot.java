@@ -16,20 +16,25 @@ public class FoodParrot extends Parrot {
 											"свёклой",
 											"ватой",
 											"мятой",
-											"колбасой");
+											"колбасой",
+											"колбаской",
+											"сгущёнкой"
+											);
 	static {
 		food.setCommentsBefore("Обожралась ",
+				"Обкушалась ",
 				"Ухомячилась ",
 				"Объелась ",
 				"Ужралась ",
 				"Уелась ");
 		food.setCommentsAfter(
 				". Тошнит",
+				". Умираю",
 				". Плохо мне :(",
 				" #ОфигевшийОпоссумОленька",
 				"");
 	}
-	public FoodParrot(Poster poster) {
-		super(food, new OnceIn(1, 3), new Probably(0.7), poster, "FoodParrot");
+	public FoodParrot(Poster poster, boolean forced) {
+		super(food, new OnceIn(1, 3), new Probably(0.7), poster, "FoodParrot", forced);
 	}
 }

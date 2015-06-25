@@ -2,12 +2,16 @@ package shtykh.parrots;
 
 
 import org.apache.log4j.Logger;
+import org.json.JSONException;
 import shtykh.parrots.onlyif.Booleaner;
 import shtykh.parrots.poster.Poster;
 import shtykh.parrots.what.Stringer;
 import shtykh.parrots.when.Longer;
 import shtykh.tweets.TwitterAPIException;
+import shtykh.util.HtmlHelper;
+import shtykh.util.TableBuilder;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.LinkedList;
 
@@ -21,20 +25,25 @@ public abstract class Parrot extends Thread {
 	private final Booleaner ifWhat;
 	private final Poster poster;
 
-	private LinkedList<String> postsLog;
+	private LinkedList<PostEntry> postsLog;
 	private Date next;
+
 	private final String name;
+	
+	private boolean forceAttempt = true;
 	
 	public Parrot(Stringer what,
 				  Longer when,
 				  Booleaner ifWhat,
-				  Poster poster, String name) {
+				  Poster poster, 
+				  String name, boolean forced) {
 		this.what = what;
 		this.when = when;
 		this.ifWhat = ifWhat;
 		this.poster = poster;
 		this.name = name;
 		postsLog = new LinkedList<>();
+		this.forceAttempt = forced;
 		setDaemon(true);
 	}
 
@@ -46,20 +55,38 @@ public abstract class Parrot extends Thread {
 				next = new Date(System.currentTimeMillis() + sleep);
 				log.info(name + ": Next attempt in " + next);
 				Thread.sleep(sleep);
-				if (ifWhat.nextBoolean()) {
+				if (forceAttempt) {
 					say();
+					forceAttempt = false;
 				} else {
-					log.info(name + ": Not tweeting");
+					if (ifWhat.nextBoolean()) {
+						say();
+					} else {
+						pushToLog("Not tweeting");
+						log.info(name + ": Not tweeting");
+					}
 				}
-			} catch (Exception e) {
-				throw new RuntimeException(e);
+			} catch (InterruptedException | IOException | JSONException | TwitterAPIException e) {
+				pushToLog(e.getMessage());
 			}
 		}
 	}
 
-	private void say() throws TwitterAPIException {
-		String post = poster.post(what.nextString());
-		postsLog.push(post);
+	public String say() {
+		String post = what.nextString();
+		String result = poster.post(post);
+		PostEntry postEntry = pushToLog(post, result);
+		return postEntry.toHtml();
+	}
+
+	private PostEntry pushToLog(String post) {
+		return pushToLog(post, "");
+	}
+
+	private PostEntry pushToLog(String post, String responce) {
+		PostEntry postEntry = new PostEntry(post, responce, new Date());
+		postsLog.push(postEntry);	
+		return postEntry;
 	}
 
 	public Date getNext() {
@@ -71,11 +98,27 @@ public abstract class Parrot extends Thread {
 	}
 	
 	public String getPostLog(int n) {
+		TableBuilder table = new TableBuilder("Post", "Response", "Date");
 		int postsNumber = Math.min(n, postsLog.size());
-		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < postsNumber; i++) {
-			sb.append(postsLog.get(i));
+			PostEntry postEntry = postsLog.get(i);
+			table.addRow(
+					postEntry.getPost(), 
+					postEntry.getResponse(), 
+					postEntry.getDate().toString());
 		}
-		return sb.toString();
+		return HtmlHelper.htmlPage(name + " last " + postsNumber + " posts", table.buildHtml());
+	}
+
+	public int getPostsNumber() {
+		return postsLog.size();
+	}
+
+	public void setForceAttempt(boolean force) {
+		forceAttempt = force;
+	}
+
+	public boolean getForceAttempt() {
+		return forceAttempt;
 	}
 }

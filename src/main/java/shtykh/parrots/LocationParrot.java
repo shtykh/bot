@@ -8,12 +8,12 @@ import shtykh.parrots.when.OnceIn;
  * Created by shtykh on 01/04/15.
  */
 public class LocationParrot extends Parrot {
-	public LocationParrot(Poster poster, LocationIsChanged locationIsChanged) {
-		super(() -> getCityName(locationIsChanged) + ", я в тебе", 
-				new OnceIn(2, 3), 
-				locationIsChanged, 
-				poster, 
-				"LocationParrot");
+	public LocationParrot(Poster poster, LocationIsChanged locationIsChanged, boolean forced) {
+		super(() -> getCityName(locationIsChanged) + ", я в тебе",
+				new OnceIn(2, 3),
+				locationIsChanged,
+				poster,
+				"LocationParrot", forced);
 		locationIsChanged.setPoster(poster);
 	}
 

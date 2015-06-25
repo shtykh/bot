@@ -3,7 +3,7 @@ package shtykh.parrots.what;
 import org.apache.log4j.Logger;
 import shtykh.parrots.onlyif.Booleaner;
 
-import static shtykh.Util.random;
+import static shtykh.util.Util.random;
 
 /**
  * Created by shtykh on 29/03/15.
@@ -18,15 +18,11 @@ public class Sweets implements Stringer, Booleaner {
 	public Sweets() {
 		this.number = 0;
 		this.newParty = true;
-		String[] begin = new String[] {"#птичка_певунья - ", "Сегодня #птичка_певунья - "};
 		black = new Phrase("шоколадная. ", "коричневая. ");
-		black.setCommentsBefore(begin);
 		black.setCommentsAfter("Но день будет всё равно хорошим :)",
 				":(",
-				"¯ \\ _ (ツ) _ / ¯",
 				"Не зря у меня болела голова!");
 		white = new Phrase("ванильная. ", "белая. ");
-		white.setCommentsBefore(begin);
 		white.setCommentsAfter("И погода хорошая с утра :)",
 				":)",
 				"Так я и знала :)",
@@ -42,9 +38,8 @@ public class Sweets implements Stringer, Booleaner {
 	public String nextString() {
 		StringBuilder sb = new StringBuilder();
 		if(newParty) {
-			sb.append("Партия конфет #птичка_певунья подоспела :)");
+			sb.append("Партия конфет #птичка_певунья подоспела :) ");
 			newParty = false;
-			return sb.toString();
 		}
 		number--;
 		if(number == 0) {

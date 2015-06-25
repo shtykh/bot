@@ -1,5 +1,6 @@
 package shtykh.rest;
 
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,9 @@ import shtykh.parrots.poster.Poster;
 import shtykh.parrots.what.Sweets;
 import shtykh.tweets.TwitterAPIException;
 import shtykh.ui.UiUtil;
+import shtykh.util.HtmlHelper;
+import shtykh.util.Parameter;
+import shtykh.util.TableBuilder;
 
 import javax.swing.*;
 import javax.ws.rs.GET;
@@ -20,8 +24,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.awt.*;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static shtykh.util.HtmlHelper.htmlPage;
 
 /**
  * Created by shtykh on 29/03/15.
@@ -31,19 +38,22 @@ import java.util.List;
 public class Bot extends JFrame {
 	private static final Logger log = Logger.getLogger(Bot.class);
 	private List<Parrot> parrots;
-	
+
 	@Autowired
 	private Poster poster;
+	private HtmlHelper htmlHelper;
 	
-	private static final String HOST = "http://localhost"; 
-	private static final String PORT = "8080";
+	private static final String HOST = "localhost";
+	private static final int PORT = 8080;
 
 	public void init() throws HeadlessException, IOException, JSONException {
+		htmlHelper = new HtmlHelper(HOST, PORT);
 		parrots = new ArrayList<>();
-		parrots.add(new FoodParrot(poster));
-		parrots.add(new HangoverParrot(poster));
-		parrots.add(new LocationParrot(poster, new LocationIsChanged("Москва")));
-		parrots.add(new SweetsParrot(poster, new Sweets()));
+		parrots.add(new FoodParrot(poster, false));
+		parrots.add(new HangoverParrot(poster, false));
+		parrots.add(new LocationParrot(poster, new LocationIsChanged("Москва"), false));
+		parrots.add(new SweetsParrot(poster, new Sweets(), false));
+		parrots.add(new HumidityParrot(poster, true));
 
 		log.info("Starting parrots");
 		for (Parrot parrot : parrots) {
@@ -88,21 +98,64 @@ public class Bot extends JFrame {
 	}
 
 	@GET
+	@Path("/force")
+	public Response force(@QueryParam("number") int number, @QueryParam("force") boolean force) {
+		if (number >= parrots.size()) {
+			return Response.status(404).entity("Wrong parrot number:" + number + "\n" +
+					"It should be " + (parrots.size() - 1) + " or less").build();
+		} else {
+			Parrot parrot = parrots.get(number);
+			parrot.setForceAttempt(force);
+			String result = parrot.getParrotName() + ": is forced to post at the next attempt: \n" + force;
+			return Response.status(200).entity(result).build();
+		}
+	}
+
+	@GET
+	@Path("/say")
+	public Response say(@QueryParam("number") int number) {
+		if (number >= parrots.size()) {
+			return Response.status(404).entity("Wrong parrot number:" + number + "\n" +
+					"It should be " + (parrots.size() - 1) + " or less").build();
+		} else {
+			Parrot parrot = parrots.get(number);
+			String words = parrot.say();
+			String result = parrot.getParrotName() + ": said: \n" + words;
+			return Response.status(200).entity(result).build();
+		}
+	}
+
+	@GET
 	@Produces(MediaType.TEXT_HTML)
 	@Path("/list")
 	public Response showList() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("<table border=1>");
+		TableBuilder table = new TableBuilder(
+				"Parrot Name",
+				"Next attempt time",
+				"Last Posts",
+				"Posts",
+				"Forced to post", 
+				"Force to post",
+				"Post right now");
 		for (int i = 0; i < parrots.size(); i++) {
 			Parrot parrot = parrots.get(i);
-			sb.append("<tr>");
-			sb.append("<td>" + parrot.getParrotName() + "</td>" +
-					  "<td>" + parrot.getNext() + "</td>" +
-					  "<td>" + getPath("log?number=" + i + "&posts=" + 15, "Last posts") + "</td>");
-			sb.append("</tr>");
+			Parameter numberI = new Parameter("number", String.valueOf(i));
+			table.addRow(
+					parrot.getParrotName(), 
+					parrot.getNext().toString(), 
+					getPath("log", "Last posts", 
+							numberI, 
+							new Parameter("posts", String.valueOf(15))),
+					String.valueOf(parrot.getPostsNumber()), 
+					String.valueOf(parrot.getForceAttempt()), 
+					getPath("force", "Force " + parrot.getParrotName(), 
+							numberI, 
+							new Parameter("force", String.valueOf(true))),
+					getPath("say", "Say " + parrot.getParrotName(), 
+							numberI)
+					);
 		}
-		sb.append("</table>");
-		String body = sb.toString();
+		String body = table.buildHtml();
 		if(parrots.isEmpty()) {
 			body = "is empty";
 		}
@@ -110,21 +163,13 @@ public class Bot extends JFrame {
 		return Response.status(200).entity(page).build();
 	}
 	
-	private String htmlPage(String title, String header, String body) {
-		StringBuilder sb = new StringBuilder();
-		sb.append("<html><title>" +
-				title +
-				"</title><body><h1>" +
-				header +
-				"</h1>");
-		sb.append(body);
-		sb.append("</body></html>");
-		return sb.toString();
-	}
-	
-	private String getPath(String suffix, String name) {
-		String href = HOST + ":" + PORT + "/bot/rest/parrots/" + suffix;
-		return "<a href="+ href + ">" + name + "</a>";
+	private String getPath(String method, String name, Parameter... parameters) {
+		try {
+			URIBuilder uriBuilder = htmlHelper.uriBuilder("/bot/rest/parrots/" + method, parameters);
+			return htmlHelper.href(uriBuilder.build(), name);
+		} catch (URISyntaxException e) {
+			return htmlHelper.href(htmlHelper.getHome(), "error");
+		}
 	}
 	
 }

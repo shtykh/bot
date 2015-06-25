@@ -2,7 +2,7 @@ package shtykh.parrots.when;
 
 import org.apache.log4j.Logger;
 
-import static shtykh.Util.random;
+import static shtykh.util.Util.random;
 
 /**
  * Created by shtykh on 29/03/15.

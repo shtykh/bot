@@ -5,6 +5,7 @@ import org.json.JSONException;
 import shtykh.tweets.Location;
 import shtykh.tweets.TwitterAPIException;
 import shtykh.tweets.TwitterClient;
+import shtykh.tweets.Weather;
 
 import java.io.IOException;
 
@@ -34,6 +35,16 @@ public class TwitterPoster implements Poster {
 		try {
 			return twitterClient.getLocation();
 		} catch (JSONException | TwitterAPIException | IOException e) {
+			log.error(e.getMessage());
+			return null;
+		}
+	}
+	
+	@Override
+	public Weather getWeather(String query) {
+		try {
+			return twitterClient.getWeather(query);
+		} catch (JSONException | IOException | TwitterAPIException e) {
 			log.error(e.getMessage());
 			return null;
 		}

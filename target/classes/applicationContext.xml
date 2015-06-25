@@ -6,9 +6,8 @@
 	http://www.springframework.org/schema/context
 	http://www.springframework.org/schema/context/spring-context-3.0.xsd">
  
-	<context:component-scan base-package="shtykh.rest" />
-	
-	<bean id="functionBO" class="shtykh.funk.impl.SummBO" />
-    <!--http://localhost:8080/shtykh/rest/math/funk?a=3&b=4-->
- 
+	<context:component-scan base-package="shtykh.rest"/>
+
+    <bean id="poster" class="shtykh.parrots.poster.TwitterPoster"/>
+    <bean id="bot" class="shtykh.rest.Bot" init-method="init"></bean>
 </beans>

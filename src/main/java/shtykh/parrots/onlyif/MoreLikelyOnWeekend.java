@@ -2,7 +2,7 @@ package shtykh.parrots.onlyif;
 
 import java.util.Calendar;
 
-import static shtykh.Util.random;
+import static shtykh.util.Util.random;
 
 /**
  * Created by shtykh on 01/04/15.

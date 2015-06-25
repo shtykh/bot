@@ -1,4 +1,4 @@
-package shtykh;
+package shtykh.util;
 
 import java.util.Random;
 
