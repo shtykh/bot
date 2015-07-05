@@ -6,6 +6,7 @@ shtykh/parrots/when/Daily.class
 shtykh/parrots/HangoverParrot.class
 shtykh/util/TableBuilder.class
 shtykh/util/Util.class
+shtykh/rest/Bot$2.class
 shtykh/util/Parameter.class
 shtykh/parrots/when/Longer.class
 shtykh/parrots/onlyif/Probably.class
@@ -26,6 +27,7 @@ shtykh/parrots/when/OnceIn.class
 shtykh/parrots/poster/Poster.class
 shtykh/parrots/Parrot.class
 shtykh/parrots/LocationParrot.class
+shtykh/parrots/CustomParrot.class
 shtykh/rest/Bot$1.class
 shtykh/parrots/onlyif/LocationIsChanged.class
 shtykh/parrots/what/Humidity.class

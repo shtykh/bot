@@ -5,11 +5,14 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import shtykh.parrots.Event;
 import shtykh.parrots.*;
+import shtykh.parrots.Event;
 import shtykh.parrots.onlyif.LocationIsChanged;
+import shtykh.parrots.onlyif.Randomly;
 import shtykh.parrots.poster.Poster;
+import shtykh.parrots.what.SomethingWithComments;
 import shtykh.parrots.what.Sweets;
+import shtykh.parrots.when.Daily;
 import shtykh.tweets.TwitterAPIException;
 import shtykh.ui.UiUtil;
 import shtykh.util.HtmlHelper;
@@ -17,15 +20,16 @@ import shtykh.util.Parameter;
 import shtykh.util.TableBuilder;
 
 import javax.swing.*;
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.awt.*;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
+import java.util.*;
 import java.util.List;
 
 import static shtykh.util.HtmlHelper.htmlPage;
@@ -38,7 +42,7 @@ import static shtykh.util.HtmlHelper.htmlPage;
 public class Bot extends JFrame {
 	private static final Logger log = Logger.getLogger(Bot.class);
 	
-	private List<Parrot> parrots;
+	private Map<String, Parrot> parrots;
 	private List<Event> events;
 
 	@Autowired
@@ -51,16 +55,18 @@ public class Bot extends JFrame {
 
 	public void init() throws HeadlessException, IOException, JSONException, TwitterAPIException {
 		htmlHelper = new HtmlHelper(HOST, PORT);
-		parrots = new ArrayList<>();
+		ArrayList<Parrot> parrotsList = new ArrayList<>();
+		parrots = new HashMap<>();
 		events = new ArrayList<>();
-		parrots.add(new FoodParrot(poster, false));
-		parrots.add(new HangoverParrot(poster, false));
-		parrots.add(new LocationParrot(poster, new LocationIsChanged("Москва"), false));
-		parrots.add(new SweetsParrot(poster, new Sweets(), false));
-		parrots.add(new HumidityParrot(poster, true));
+		parrotsList.add(new FoodParrot(poster, false));
+		parrotsList.add(new HangoverParrot(poster, false));
+		parrotsList.add(new LocationParrot(poster, new LocationIsChanged("Москва"), false));
+		parrotsList.add(new SweetsParrot(poster, new Sweets(), false));
+		parrotsList.add(new HumidityParrot(poster, true));
 
 		log.info("Starting parrots");
-		for (Parrot parrot : parrots) {
+		for (Parrot parrot : parrotsList) {
+			parrots.put(parrot.getParrotName(), parrot);
 			events.add(parrot.generateEvent());
 		}
 		log.info("Starting ticker");
@@ -115,12 +121,11 @@ public class Bot extends JFrame {
 
 	@GET
 	@Path("/events")
-	public Response events(@QueryParam("number") int number) {
-		if (number >= parrots.size()) {
-			return Response.status(404).entity("Wrong parrot number:" + number + "\n" +
-					"It should be " + (parrots.size() - 1) + " or less").build();
+	public Response events(@QueryParam("name") String name) {
+		if (!parrots.containsKey(name)) {
+			return Response.status(404).entity("Parrot:" + name + " not found").build();
 		} else {
-			Parrot parrot = parrots.get(number);
+			Parrot parrot = parrots.get(name);
 			TableBuilder table = new TableBuilder("Id", "Parrot", "When", "Remove");
 			Collections.sort(events);
 			for (Event event : events) {
@@ -162,12 +167,11 @@ public class Bot extends JFrame {
 
 	@GET
 	@Path("/log")
-	public Response log(@QueryParam("number") int number, @QueryParam("posts") int posts) {
-		if (number >= parrots.size()) {
-			return Response.status(404).entity("Wrong parrot number:" + number + "\n" +
-					"It should be " + (parrots.size() - 1) + " or less").build();
+	public Response log(@QueryParam("name") String name, @QueryParam("posts") int posts) {
+		if (!parrots.containsKey(name)) {
+			return Response.status(404).entity("Parrot:" + name + " not found").build();
 		} else {
-			Parrot parrot = parrots.get(number);
+			Parrot parrot = parrots.get(name);
 			String result = parrot.getParrotName() + ": posts: \n" + parrot.getPostLog(posts);
 			return Response.status(200).entity(result).build();
 		}
@@ -175,12 +179,11 @@ public class Bot extends JFrame {
 
 	@GET
 	@Path("/force")
-	public Response force(@QueryParam("number") int number, @QueryParam("force") boolean force) {
-		if (number >= parrots.size()) {
-			return Response.status(404).entity("Wrong parrot number:" + number + "\n" +
-					"It should be " + (parrots.size() - 1) + " or less").build();
+	public Response force(@QueryParam("name") String name, @QueryParam("force") boolean force) {
+		if (!parrots.containsKey(name)) {
+			return Response.status(404).entity("Parrot:" + name + " not found").build();
 		} else {
-			Parrot parrot = parrots.get(number);
+			Parrot parrot = parrots.get(name);
 			parrot.setForceAttempt(force);
 			String result = parrot.getParrotName() + ": is forced to post at the next attempt: \n" + force;
 			return Response.status(200).entity(result).build();
@@ -189,12 +192,11 @@ public class Bot extends JFrame {
 
 	@GET
 	@Path("/say")
-	public Response say(@QueryParam("number") int number) {
-		if (number >= parrots.size()) {
-			return Response.status(404).entity("Wrong parrot number:" + number + "\n" +
-					"It should be " + (parrots.size() - 1) + " or less").build();
+	public Response say(@QueryParam("name") String name) {
+		if (!parrots.containsKey(name)) {
+			return Response.status(404).entity("Parrot:" + name + " not found").build();
 		} else {
-			Parrot parrot = parrots.get(number);
+			Parrot parrot = parrots.get(name);
 			String words = parrot.say();
 			String result = parrot.getParrotName() + ": said: \n" + words;
 			return Response.status(200).entity(result).build();
@@ -221,16 +223,40 @@ public class Bot extends JFrame {
 
 	@GET
 	@Path("/addEvent")
-	public Response addEvent(@QueryParam("number") int number) {
-		if (number >= parrots.size()) {
-			return Response.status(404).entity("Wrong parrot number:" + number + "\n" +
-					"It should be " + (parrots.size() - 1) + " or less").build();
+	public Response addEvent(@QueryParam("name") String name) {
+		if (!parrots.containsKey(name)) {
+			return Response.status(404).entity("Parrot:" + name + " not found").build();
 		} else {
-			Parrot parrot = parrots.get(number);
+			Parrot parrot = parrots.get(name);
 			Event event = parrot.generateEvent();
 			events.add(event);
 			return home();
 		}
+	}
+
+	@GET
+	@Path("/addParrot")
+	public Response addParrot(@QueryParam("name") String name) {
+		Parrot newParrot = new CustomParrot(new SomethingWithComments() {
+			@Override
+			protected void updateBeforeSaying() {
+				
+			}
+
+			@Override
+			protected String getMainLine() {
+				return null;
+			}
+		}, new Daily(), new Randomly(), poster, name, false);
+		parrots.put(name, newParrot);
+		return home();
+	}
+
+	@GET
+	@Path("/removeParrot")
+	public Response removeParrot(@QueryParam("name") String name) {
+		parrots.remove(name);
+		return home();
 	}
 
 	@GET
@@ -245,29 +271,35 @@ public class Bot extends JFrame {
 				"Forced to post", 
 				"Force to post",
 				"Post right now",
-				"Add an addEvent");
-		for (int i = 0; i < parrots.size(); i++) {
-			Parrot parrot = parrots.get(i);
-			Parameter numberI = new Parameter("number", String.valueOf(i));
+				"Add an event",
+				"Remove the parrot");
+		for (Parrot parrot: parrots.values()) {
+			String name = parrot.getParrotName();
+			Parameter nameParameter = new Parameter("name", name);
 			table.addRow(
 					parrot.getParrotName(), 
 					getPath("events", "Events", 
-							numberI),
+							nameParameter),
 					getPath("log", "Last posts", 
-							numberI, 
+							nameParameter,
 							new Parameter("posts", String.valueOf(15))),
 					String.valueOf(parrot.getPostsNumber()), 
 					String.valueOf(parrot.getForceAttempt()), 
-					getPath("force", "Force " + parrot.getParrotName(), 
-							numberI, 
+					getPath("force", "Force", 
+							nameParameter,
 							new Parameter("force", String.valueOf(true))),
-					getPath("say", "Say " + parrot.getParrotName(), 
-							numberI),
-					getPath("addEvent", "New event " + parrot.getParrotName(),
-							numberI)
+					getPath("say", "Say", 
+							nameParameter),
+					getPath("addEvent", "New event",
+							nameParameter),
+					getPath("removeParrot", "Remove",
+							nameParameter)
 					);
 		}
-		String body = table.buildHtml() + "<br/>" + allEventsTable().buildHtml();
+		String body = getPath("addParrot", "Add custom Parrot", new Parameter("name", "CustomParrot" + parrots.size())) +
+				table.buildHtml() + 
+				"<br/>" + 
+				allEventsTable().buildHtml();
 		if(parrots.isEmpty()) {
 			body = "is empty";
 		}

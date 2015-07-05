@@ -18,7 +18,8 @@ import java.util.LinkedList;
 /**
  * Created by shtykh on 29/03/15.
  */
-public class Parrot {
+
+public abstract class Parrot {
 	private static Logger log = Logger.getLogger(Parrot.class);
 	private final Stringer what;
 	private final Longer when;
