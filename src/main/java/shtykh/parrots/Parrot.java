@@ -18,7 +18,7 @@ import java.util.LinkedList;
 /**
  * Created by shtykh on 29/03/15.
  */
-public abstract class Parrot extends Thread {
+public class Parrot {
 	private static Logger log = Logger.getLogger(Parrot.class);
 	private final Stringer what;
 	private final Longer when;
@@ -26,7 +26,6 @@ public abstract class Parrot extends Thread {
 	private final Poster poster;
 
 	private LinkedList<PostEntry> postsLog;
-	private Date next;
 
 	private final String name;
 	
@@ -44,30 +43,26 @@ public abstract class Parrot extends Thread {
 		this.name = name;
 		postsLog = new LinkedList<>();
 		this.forceAttempt = forced;
-		setDaemon(true);
 	}
-
-	@Override
-	public void run() {
-		while (true) {
-			try {
-				long sleep = when.nextLong();
-				next = new Date(System.currentTimeMillis() + sleep);
-				log.info(name + ": Next attempt in " + next);
-				Thread.sleep(sleep);
-				if (forceAttempt) {
-					say();
-					forceAttempt = false;
-				} else {
-					if (ifWhat.nextBoolean()) {
-						say();
-					} else {
-						pushToLog("Not tweeting");
-						log.info(name + ": Not tweeting");
-					}
-				}
-			} catch (InterruptedException | IOException | JSONException | TwitterAPIException e) {
-				pushToLog(e.getMessage());
+	
+	public Event generateEvent() {
+		long sleep = when.nextLong();
+		Date next = new Date(System.currentTimeMillis() + sleep);
+		return new Event(this, next);
+	}
+	
+	public String tryToSay() throws TwitterAPIException, JSONException, IOException {
+		if (forceAttempt) {
+			forceAttempt = false;
+			return say();
+		} else {
+			if (ifWhat.nextBoolean()) {
+				return say();
+			} else {
+				String message = "Not happened to say";
+				pushToLog(message);
+				log.info(name + ": " + message);
+				return message;
 			}
 		}
 	}
@@ -87,10 +82,6 @@ public abstract class Parrot extends Thread {
 		PostEntry postEntry = new PostEntry(post, responce, new Date());
 		postsLog.push(postEntry);	
 		return postEntry;
-	}
-
-	public Date getNext() {
-		return next;
 	}
 
 	public String getParrotName() {

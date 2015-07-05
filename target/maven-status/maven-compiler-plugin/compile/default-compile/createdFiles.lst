@@ -10,6 +10,7 @@ shtykh/util/Parameter.class
 shtykh/parrots/when/Longer.class
 shtykh/parrots/onlyif/Probably.class
 shtykh/parrots/what/SomethingWithComments.class
+shtykh/parrots/Event.class
 shtykh/parrots/FoodParrot.class
 shtykh/parrots/what/Stringer.class
 shtykh/util/HtmlHelper$HtmlBuilder.class
@@ -25,5 +26,6 @@ shtykh/parrots/when/OnceIn.class
 shtykh/parrots/poster/Poster.class
 shtykh/parrots/Parrot.class
 shtykh/parrots/LocationParrot.class
+shtykh/rest/Bot$1.class
 shtykh/parrots/onlyif/LocationIsChanged.class
 shtykh/parrots/what/Humidity.class
