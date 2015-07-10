@@ -5,9 +5,9 @@ package shtykh.util;
  */
 public class Parameter {
 	private String name;
-	private String value;
+	private Object value;
 
-	public Parameter(String name, String value) {
+	public Parameter(String name, Object value) {
 		this.name = name;
 		this.value = value;
 	}
@@ -18,5 +18,10 @@ public class Parameter {
 
 	public Object getValue() {
 		return value;
+	}
+
+	@Override
+	public String toString() {
+		return name + "=\"" + value + "\"" ;
 	}
 }

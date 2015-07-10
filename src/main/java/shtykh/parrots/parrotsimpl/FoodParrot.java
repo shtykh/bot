@@ -1,5 +1,6 @@
-package shtykh.parrots;
+package shtykh.parrots.parrotsimpl;
 
+import shtykh.parrots.Parrot;
 import shtykh.parrots.onlyif.Probably;
 import shtykh.parrots.poster.Poster;
 import shtykh.parrots.what.Phrase;
@@ -34,7 +35,7 @@ public class FoodParrot extends Parrot {
 				" #ОфигевшийОпоссумОленька",
 				"");
 	}
-	public FoodParrot(Poster poster, boolean forced) {
-		super(food, new OnceIn(1, 3), new Probably(0.7), poster, "FoodParrot", forced);
+	public FoodParrot(Poster poster) {
+		super(food, new OnceIn(1, 3), new Probably(0.7), poster, "FoodParrot");
 	}
 }

@@ -4,6 +4,8 @@ import org.apache.http.client.utils.URIBuilder;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by shtykh on 03/04/15.
@@ -24,7 +26,7 @@ public class HtmlHelper {
 				.setPort(port)
 				.setPath(postfix);
 		for (Parameter parameter : parameters) {
-			uriBuilder.addParameter(parameter.getName(), (String) parameter.getValue());
+			uriBuilder.addParameter(parameter.getName(), String.valueOf(parameter.getValue()));
 		};
 		return uriBuilder;
 	}
@@ -94,20 +96,15 @@ public class HtmlHelper {
 
 		public String build() {
 			assignDefaultIfNull();
-			return "<html>" +
-						"<head>" +
-							"<title>" +
-								title +
-							"</title>" +
-							"<meta charset=\"" + charset + "\">" +
-						"</head>" +
-						"<body>" +
-							"<h1>" +
-								header +
-							"</h1>" +
-							body +
-						"</body>" +
-					"</html>";
+			return tag("html", 
+						tag("head",
+								tag("title", title) +
+								"<meta charset=\"" + charset + "\">"
+						) +
+						tag("body",
+								tag("h1", header) + body
+						)
+					);
 		}
 
 		private void assignDefaultIfNull() {
@@ -124,5 +121,78 @@ public class HtmlHelper {
 				charset = DEFAULT_CHARSET;
 			}
 		}
+	}
+	
+	public static class FormBuilder {
+		private String action;
+		private List<Parameter> parameters = new ArrayList<>();
+		private List<String> comments = new ArrayList<>();
+
+		public FormBuilder() {
+		}
+		
+		public FormBuilder addParameter(String name, Object value) {
+			parameters.add(new Parameter(name, value));
+			return this;
+		}
+
+		public String build(){
+			StringBuilder sb = new StringBuilder();
+			for(String comment: comments) {
+				sb.append(tag("p", comment));
+			}
+			for(Parameter parameter: parameters) {
+				sb.append(tag("p", parameter.getName() + ":" + 
+						input(	"text",
+								parameter.getName(),
+								parameter.getValue().toString())));
+			}
+			sb.append(input("submit", "Submit"));
+			String form = sb.toString();
+			return tag("form", form, 
+					new Parameter("method", "get"),
+					new Parameter("action", action)
+					);
+		}
+
+		private String input(String type, String name, String value) {
+			return tag("input",
+					new Parameter("type", type),
+					new Parameter("name", name),
+					new Parameter("value", value));
+		}
+
+		private String input(String type, String value) {
+			return tag("input",
+					new Parameter("type", type),
+					new Parameter("value", value));
+		}
+
+		public FormBuilder setAction(String action) {
+			this.action = action;
+			return this;
+		}
+
+		public FormBuilder addComment(String comment) {
+			comments.add(comment);
+			return this;
+		}
+	}
+
+	public static String tag(String tag, Parameter... parameters) {
+		return tag(tag, null, parameters); 
+	}
+
+	public static String tag(String tag, Object value, Parameter... parameters) {
+		StringBuilder sb = new StringBuilder("<" + tag + " ");
+		for (Parameter parameter : parameters) {
+			sb.append(parameter.toString() + " ");
+		}
+		if(value != null) {
+			sb.append(">" + value + "</" + tag + ">");
+		} else {
+			sb.append("/>");
+		}
+		return sb.toString();
 	}
 }

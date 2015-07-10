@@ -7,6 +7,7 @@ import shtykh.parrots.onlyif.Booleaner;
 import shtykh.parrots.poster.Poster;
 import shtykh.parrots.what.Stringer;
 import shtykh.parrots.when.Longer;
+import shtykh.rest.Event;
 import shtykh.tweets.TwitterAPIException;
 import shtykh.util.HtmlHelper;
 import shtykh.util.TableBuilder;
@@ -30,20 +31,17 @@ public abstract class Parrot {
 
 	private final String name;
 	
-	private boolean forceAttempt = true;
-	
 	public Parrot(Stringer what,
 				  Longer when,
 				  Booleaner ifWhat,
 				  Poster poster, 
-				  String name, boolean forced) {
+				  String name) {
 		this.what = what;
 		this.when = when;
 		this.ifWhat = ifWhat;
 		this.poster = poster;
 		this.name = name;
 		postsLog = new LinkedList<>();
-		this.forceAttempt = forced;
 	}
 	
 	public Event generateEvent() {
@@ -52,19 +50,14 @@ public abstract class Parrot {
 		return new Event(this, next);
 	}
 	
-	public String tryToSay() throws TwitterAPIException, JSONException, IOException {
-		if (forceAttempt) {
-			forceAttempt = false;
+	public String tryToSay(Event event) throws TwitterAPIException, JSONException, IOException {
+		if (event.isForced() && ifWhat.nextBoolean()) {
 			return say();
 		} else {
-			if (ifWhat.nextBoolean()) {
-				return say();
-			} else {
-				String message = "Not happened to say";
-				pushToLog(message);
-				log.info(name + ": " + message);
-				return message;
-			}
+			String message = "Not happened to say";
+			pushToLog(message);
+			log.info(name + ": " + message);
+			return message;
 		}
 	}
 
@@ -104,13 +97,5 @@ public abstract class Parrot {
 
 	public int getPostsNumber() {
 		return postsLog.size();
-	}
-
-	public void setForceAttempt(boolean force) {
-		forceAttempt = force;
-	}
-
-	public boolean getForceAttempt() {
-		return forceAttempt;
 	}
 }

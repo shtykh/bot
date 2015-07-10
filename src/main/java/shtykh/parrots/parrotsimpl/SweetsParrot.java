@@ -1,5 +1,6 @@
-package shtykh.parrots;
+package shtykh.parrots.parrotsimpl;
 
+import shtykh.parrots.Parrot;
 import shtykh.parrots.poster.Poster;
 import shtykh.parrots.what.Sweets;
 import shtykh.parrots.when.Daily;
@@ -10,8 +11,8 @@ import shtykh.parrots.when.Daily;
 public class SweetsParrot extends Parrot {
 	private final Sweets sweets;
 
-	public SweetsParrot(Poster poster, Sweets sweets, boolean forced) {
-		super(sweets, new Daily(), sweets, poster, "SweetsParrot", forced);
+	public SweetsParrot(Poster poster, Sweets sweets) {
+		super(sweets, new Daily(), sweets, poster, "SweetsParrot");
 		this.sweets = sweets;
 	}
 

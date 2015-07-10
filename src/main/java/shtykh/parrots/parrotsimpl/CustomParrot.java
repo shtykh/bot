@@ -1,5 +1,6 @@
-package shtykh.parrots;
+package shtykh.parrots.parrotsimpl;
 
+import shtykh.parrots.Parrot;
 import shtykh.parrots.onlyif.Booleaner;
 import shtykh.parrots.poster.Poster;
 import shtykh.parrots.what.Stringer;
@@ -13,8 +14,7 @@ public class CustomParrot extends Parrot {
 						Longer when, 
 						Booleaner ifWhat, 
 						Poster poster, 
-						String name, 
-						boolean forced) {
-		super(what, when, ifWhat, poster, name, forced);
+						String name) {
+		super(what, when, ifWhat, poster, name);
 	}
 }
