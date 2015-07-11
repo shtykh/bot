@@ -1,11 +1,12 @@
-package shtykh.util;
+package shtykh.util.html;
 
 import org.apache.http.client.utils.URIBuilder;
+import shtykh.util.html.param.Parameter;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
+
+import static shtykh.util.html.TagBuilder.tag;
 
 /**
  * Created by shtykh on 03/04/15.
@@ -40,7 +41,9 @@ public class HtmlHelper {
 		if (name == null) {
 			name = href;
 		}
-		return "<a href=" + href + ">" + name + "</a>";
+		return tag("a")
+				.params(new Parameter("href", href))
+				.build(name);
 	}
 
 	public static String htmlPage(String title, String body) {
@@ -70,14 +73,22 @@ public class HtmlHelper {
 		}
 	}
 
+	public static String colorTag(String value, String color) {
+		return tag("font")
+				.params(new Parameter<>("color", color))
+				.build(value);
+	}
+
 	private static class HtmlBuilder {
 		private static final String DEFAULT_TITLE = "Untitled";
 		private static final String DEFAULT_BODY = "";
 		private static final String DEFAULT_CHARSET = "UTF-8";
+		private static final String DEFAULT_STYLE = "";
 		private String title;
 		private String header;
 		private String body;
 		private String charset;
+		private String style;
 
 		public HtmlBuilder title(String title) {
 			this.title = title;
@@ -88,6 +99,11 @@ public class HtmlHelper {
 			this.header = header;
 			return this;
 		}
+		
+		public HtmlBuilder style(String value) {
+			this.style = value;
+			return this;
+		}
 
 		public HtmlBuilder body(String body) {
 			this.body = body.replace("\n", "<br/>");
@@ -96,15 +112,14 @@ public class HtmlHelper {
 
 		public String build() {
 			assignDefaultIfNull();
-			return tag("html", 
-						tag("head",
-								tag("title", title) +
-								"<meta charset=\"" + charset + "\">"
-						) +
-						tag("body",
-								tag("h1", header) + body
-						)
-					);
+			Parameter<String> charsetParam = new Parameter<>("charset", charset);
+			String head = tag("title").build(title)
+					+ tag("meta").params(charsetParam)
+					+tag("style").build(style);
+			String body = tag("h1").build(header) + this.body;
+			return tag("html").build(
+						tag("head").build(head) +
+						tag("body").build(body));
 		}
 
 		private void assignDefaultIfNull() {
@@ -120,79 +135,9 @@ public class HtmlHelper {
 			if (charset == null) {
 				charset = DEFAULT_CHARSET;
 			}
-		}
-	}
-	
-	public static class FormBuilder {
-		private String action;
-		private List<Parameter> parameters = new ArrayList<>();
-		private List<String> comments = new ArrayList<>();
-
-		public FormBuilder() {
-		}
-		
-		public FormBuilder addParameter(String name, Object value) {
-			parameters.add(new Parameter(name, value));
-			return this;
-		}
-
-		public String build(){
-			StringBuilder sb = new StringBuilder();
-			for(String comment: comments) {
-				sb.append(tag("p", comment));
+			if (style == null) {
+				style = DEFAULT_STYLE;
 			}
-			for(Parameter parameter: parameters) {
-				sb.append(tag("p", parameter.getName() + ":" + 
-						input(	"text",
-								parameter.getName(),
-								parameter.getValue().toString())));
-			}
-			sb.append(input("submit", "Submit"));
-			String form = sb.toString();
-			return tag("form", form, 
-					new Parameter("method", "get"),
-					new Parameter("action", action)
-					);
 		}
-
-		private String input(String type, String name, String value) {
-			return tag("input",
-					new Parameter("type", type),
-					new Parameter("name", name),
-					new Parameter("value", value));
-		}
-
-		private String input(String type, String value) {
-			return tag("input",
-					new Parameter("type", type),
-					new Parameter("value", value));
-		}
-
-		public FormBuilder setAction(String action) {
-			this.action = action;
-			return this;
-		}
-
-		public FormBuilder addComment(String comment) {
-			comments.add(comment);
-			return this;
-		}
-	}
-
-	public static String tag(String tag, Parameter... parameters) {
-		return tag(tag, null, parameters); 
-	}
-
-	public static String tag(String tag, Object value, Parameter... parameters) {
-		StringBuilder sb = new StringBuilder("<" + tag + " ");
-		for (Parameter parameter : parameters) {
-			sb.append(parameter.toString() + " ");
-		}
-		if(value != null) {
-			sb.append(">" + value + "</" + tag + ">");
-		} else {
-			sb.append("/>");
-		}
-		return sb.toString();
 	}
 }

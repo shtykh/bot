@@ -2,116 +2,83 @@ package shtykh.rest;
 
 import org.json.JSONException;
 import shtykh.parrots.Parrot;
-import shtykh.parrots.onlyif.Randomly;
-import shtykh.parrots.parrotsimpl.CustomParrot;
-import shtykh.parrots.poster.TwitterPoster;
-import shtykh.parrots.what.SomethingWithComments;
-import shtykh.parrots.when.Daily;
 import shtykh.tweets.TwitterAPIException;
-import shtykh.util.HtmlHelper;
+import shtykh.util.html.form.FormMaterial;
+import shtykh.util.html.param.*;
 
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import static shtykh.util.html.param.FormParameterType.*;
 
 /**
  * Created by shtykh on 05/07/15.
  */
-public class Event implements Comparable<Event> {
+public class Event implements Comparable<Event>, FormMaterial {
 	private static int lastId = 0;
-	private int id;
-	private Parrot parrot;
-	private Date time;
-	private boolean isForced;
-	
-	private DateFormat df = new SimpleDateFormat("yyyy-MM-dd-HH_mm_ss");
+
+	private FormParameter<Integer> id;
+	private Comment<Parrot> parrot;
+	private FormParameter<Boolean> isForced;
+	private FormParameter<Date> time;
 
 	public Event(Parrot parrot, Date time) {
 		super();
-		id = lastId ++;
-		this.parrot = parrot;
-		this.time = time;
+		this.isForced = new FormParameter<>("fFrce", false, Boolean.class, checkbox);
+		this.parrot   = new Comment<>("Parrot", parrot);
+		this.id       = new HiddenParameter<>("id", lastId++, Integer.class);
+		this.time     = new FormParameter<>("Time", time, Date.class, datetime_local);
 	}
 
 	@Override
 	public String toString() {
-		return parrot.getParrotName() + " " + time;
+		return parrot.getValue() + id.getValueString();
 	}
 
 	public Parrot getParrot() {
-		return parrot;
+		return parrot.getValue();
 	}
 
 	public Date getTime() {
-		return time;
+		return time.getValue();
 	}
 
 	@Override
 	public int compareTo(Event o) {
-		return time.compareTo(o.time);
+		return time.getValue().compareTo(o.time.getValue());
 	}
 
 	public int getId() {
-		return id;
-	}
-
-	public void setTime(String time) {
-		try {
-			this.time = df.parse(time);
-		} catch (ParseException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	public String getTimeAsString() {
-		return df.format(time);
+		return id.getValue();
 	}
 
 	public boolean isInPast() {
-		return time.before(new Date());
+		return time.getValue().before(new Date());
 	}
 
 	public boolean isForced() {
-		return isForced;
+		return isForced.getValue();
 	}
 
 	public void setForced(boolean isForced) {
-		this.isForced = isForced;
+		this.isForced.setValue(isForced);
 	}
 
 	public void tryToSay() throws TwitterAPIException, JSONException, IOException {
-		parrot.tryToSay(this);
-	}
-	
-	public HtmlHelper.FormBuilder editForm() {
-		return new HtmlHelper.FormBuilder()
-						.addComment("Parrot = " + parrot.getParrotName())
-						.addComment("Is forced = " + isForced)
-						.addParameter("id", id)
-						.addParameter("time", getTimeAsString());
+		parrot.getValue().tryToSay(this);
 	}
 
-	public static void main(String[] args) throws IOException, JSONException {
-		System.out.println(new Event(new CustomParrot(
-					new SomethingWithComments() {
-						@Override
-						protected void updateBeforeSaying() {
-			
-						}
-			
-						@Override
-						protected String getMainLine() {
-							return null;
-						}
-					}, 
-					new Daily(), 
-					new Randomly(), 
-					new TwitterPoster(), 
-					"Parrot0"), 
-				new Date()).editForm()
-				.setAction("action")
-				.build());
+	public void setTime(String time) {
+		this.time.setValue(time);
+	}
+
+	@Override
+	public void renameParametersFor(String action) {
+		if (action.equals("editEvent")) {
+			this.isForced.setName("force");
+			this.parrot.setName("Parrot");
+			this.id.setName("id");
+			this.time.setName("time");
+		}
 	}
 }

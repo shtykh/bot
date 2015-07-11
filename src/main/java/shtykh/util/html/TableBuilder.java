@@ -1,4 +1,4 @@
-package shtykh.util;
+package shtykh.util.html;
 
 import java.util.ArrayList;
 import java.util.Collection;

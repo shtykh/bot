@@ -1,7 +1,7 @@
 package shtykh.parrots;
 
-import shtykh.util.HtmlHelper;
-import shtykh.util.TableBuilder;
+import shtykh.util.html.HtmlHelper;
+import shtykh.util.html.TableBuilder;
 
 import java.util.Date;
 

@@ -15,9 +15,11 @@ import shtykh.parrots.what.Sweets;
 import shtykh.parrots.when.Daily;
 import shtykh.tweets.TwitterAPIException;
 import shtykh.ui.UiUtil;
-import shtykh.util.HtmlHelper;
-import shtykh.util.Parameter;
-import shtykh.util.TableBuilder;
+import shtykh.util.html.HtmlHelper;
+import shtykh.util.html.TableBuilder;
+import shtykh.util.html.form.FormMaterial;
+import shtykh.util.html.param.FormParameter;
+import shtykh.util.html.param.Parameter;
 
 import javax.swing.*;
 import javax.ws.rs.*;
@@ -29,21 +31,22 @@ import java.net.URISyntaxException;
 import java.util.*;
 import java.util.List;
 
-import static shtykh.util.HtmlHelper.htmlPage;
-import static shtykh.util.HtmlHelper.tag;
+import static shtykh.util.html.HtmlHelper.href;
+import static shtykh.util.html.HtmlHelper.htmlPage;
+import static shtykh.util.html.TagBuilder.tag;
+import static shtykh.util.html.form.FormBuilder.buildForm;
+import static shtykh.util.html.param.FormParameterType.number;
 
 /**
  * Created by shtykh on 29/03/15.
  */
 @Component
 @Path("/parrots")
-public class Bot extends JFrame {
+public class Bot extends JFrame implements FormMaterial {
 	private static final Logger log = Logger.getLogger(Bot.class);
 	
 	private Map<String, Parrot> parrots;
-	private String editedParrotName = null;
 	private List<Event> events;
-	private int editedEventNumber = -1;
 
 	@Autowired
 	private Poster poster;
@@ -51,7 +54,7 @@ public class Bot extends JFrame {
 	
 	private static final String HOST = "localhost";
 	private static final int PORT = 8080;
-	private long timeout = 60000;
+	private FormParameter<Long> timeout;
 	private long nextShot = 0;
 
 	public void init() throws HeadlessException, IOException, JSONException, TwitterAPIException {
@@ -59,6 +62,8 @@ public class Bot extends JFrame {
 		ArrayList<Parrot> parrotsList = new ArrayList<>();
 		parrots = new HashMap<>();
 		events = new ArrayList<>();
+		timeout = new FormParameter<>("timeout", 60000L, Long.class, number);
+		
 		parrotsList.add(new FoodParrot(poster));
 		parrotsList.add(new HangoverParrot(poster));
 		parrotsList.add(new LocationParrot(poster, new LocationIsChanged("Москва")));
@@ -76,8 +81,8 @@ public class Bot extends JFrame {
 			public void run() {
 				try {
 					while (true) {
-						nextShot = System.currentTimeMillis() + timeout;
-						Thread.sleep(timeout);
+						nextShot = System.currentTimeMillis() + timeout.getValue();
+						Thread.sleep(timeout.getValue());
 						sayPast();
 					}
 				} catch (InterruptedException | IOException | JSONException | TwitterAPIException e) {
@@ -115,7 +120,10 @@ public class Bot extends JFrame {
 	public static void main(String[] args)
 			throws TwitterAPIException, JSONException, IOException, InterruptedException {
 		try {
-			new Bot().init();
+			Bot bot = new Bot();
+			bot.init();
+			System.out.println(bot.home().getEntity());
+			System.exit(0);
 		} catch (IOException | JSONException e) {
 			log.error(e);
 			UiUtil.showError("Ошибка при инициализации бота", e, null);
@@ -278,7 +286,7 @@ public class Bot extends JFrame {
 			return home();
 		}
 	}
-
+	
 	@GET
 	@Path("/editEventForm")
 	public Response editEventForm(@QueryParam("id") int id) {
@@ -292,10 +300,17 @@ public class Bot extends JFrame {
 		if (eventToEdit == null) {
 			return Response.status(404).entity("Event with id: " + id + " not found!").build();
 		} else {
-			HtmlHelper.FormBuilder fb = eventToEdit.editForm()
-					.setAction("editEvent");
-			return Response.status(200).entity(htmlHelper.htmlPage("Edit event", fb.build())).build();
+			String body = buildForm(eventToEdit, "editEvent");
+			return Response.status(200).entity(htmlPage("Edit event", body)).build();
 		}
+	}
+
+	@GET
+	@Produces(MediaType.TEXT_HTML)
+	@Path("/setTimeout")
+	public Response setTimeout(@QueryParam("timeout") String timeout) {
+		this.timeout.setValue(timeout);
+		return home();
 	}
 
 	@GET
@@ -352,6 +367,7 @@ public class Bot extends JFrame {
 			addParrotToTable(table, parrot);
 		}
 		String body = 
+				buildForm(this, "setTimeout") + 
 				timeInfo() +
 				getPath("addParrot", 
 						"Add custom Parrot", 
@@ -369,14 +385,14 @@ public class Bot extends JFrame {
 
 	private void addParrotToTable(TableBuilder table, Parrot parrot) {
 		String name = parrot.getParrotName();
-		Parameter nameParameter = new Parameter("name", name);
+		Parameter nameParameter = new Parameter<>("name", name);
 		table.addRow(
 				parrot.getParrotName(),
 				getPath("events", "Events",
 						nameParameter),
 				getPath("log", "Last posts",
 						nameParameter,
-						new Parameter("posts", String.valueOf(15))),
+						new Parameter<>("posts", String.valueOf(15))),
 				String.valueOf(parrot.getPostsNumber()),
 				getPath("say", "Say",
 						nameParameter),
@@ -388,18 +404,28 @@ public class Bot extends JFrame {
 	}
 
 	private String timeInfo() {
-		return "Now  is " + new Date() +
-				"</br>Next is " + new Date(nextShot) +
-				tag("h2", "Time till next shot: " + 
-						getPath("", "" + (nextShot - System.currentTimeMillis()) / 1000) + " sec");
+		String now = "Now  is " + new Date();
+		String br = "<br>";
+		String next = "Next is " + new Date(nextShot);
+		String refreshButton = getPath("", "" + (nextShot - System.currentTimeMillis()) / 1000) + " sec";
+		String timeTillNext = tag("h2").build("Time till next shot: " + refreshButton);
+		String result = now + br + next + timeTillNext;
+		return result;
 	}
 
 	private String getPath(String method, String name, Parameter... parameters) {
 		try {
 			URIBuilder uriBuilder = htmlHelper.uriBuilder("/bot/rest/parrots/" + method, parameters);
-			return HtmlHelper.href(uriBuilder.build(), name);
+			return href(uriBuilder.build(), name);
 		} catch (URISyntaxException e) {
-			return HtmlHelper.href(htmlHelper.getHome(), "error");
+			return href(htmlHelper.getHome(), "error");
+		}
+	}
+
+	@Override
+	public void renameParametersFor(String action) {
+		if(action.equals("setTimeout")) {
+			timeout.setName("timeout");
 		}
 	}
 }

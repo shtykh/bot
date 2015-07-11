@@ -9,8 +9,8 @@ import shtykh.parrots.what.Stringer;
 import shtykh.parrots.when.Longer;
 import shtykh.rest.Event;
 import shtykh.tweets.TwitterAPIException;
-import shtykh.util.HtmlHelper;
-import shtykh.util.TableBuilder;
+import shtykh.util.html.HtmlHelper;
+import shtykh.util.html.TableBuilder;
 
 import java.io.IOException;
 import java.util.Date;
@@ -97,5 +97,10 @@ public abstract class Parrot {
 
 	public int getPostsNumber() {
 		return postsLog.size();
+	}
+
+	@Override
+	public String toString() {
+		return getParrotName();
 	}
 }
