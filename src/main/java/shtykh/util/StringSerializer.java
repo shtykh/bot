@@ -1,5 +1,7 @@
 package shtykh.util;
 
+import shtykh.parrots.what.CommaSeparatedValues;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -37,9 +39,7 @@ public abstract class StringSerializer<T> {
 		});
 		
 		map.put(Date.class, new StringSerializer<Date>() {
-
 			private DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-
 			@Override
 			public Date fromString(String string) {
 				try {
@@ -63,6 +63,18 @@ public abstract class StringSerializer<T> {
 			@Override
 			public String toString(Boolean stringSerializable) {
 				return stringSerializable.toString();
+			}
+		});
+		
+		map.put(CommaSeparatedValues.class, new StringSerializer<CommaSeparatedValues>() {
+			@Override
+			public CommaSeparatedValues fromString(String string) {
+				return new CommaSeparatedValues(string);
+			}
+
+			@Override
+			public String toString(CommaSeparatedValues csv) {
+				return csv.toString();
 			}
 		});
 		

@@ -4,10 +4,10 @@ package shtykh.parrots.what;
  * Created by shtykh on 29/03/15.
  */
 public class Phrase extends SomethingWithComments {
-	protected final String[] cases;
+	protected final CommaSeparatedValues cases = new CommaSeparatedValues();
 
 	public Phrase(String... cases) {
-		this.cases = cases;
+		this.cases.fromArray(cases);
 	}
 
 	@Override
@@ -17,6 +17,6 @@ public class Phrase extends SomethingWithComments {
 
 	@Override
 	protected String getMainLine() {
-		return randomFromArray(cases);
+		return cases.getRandom();
 	}
 }

@@ -17,8 +17,10 @@ import shtykh.tweets.TwitterAPIException;
 import shtykh.ui.UiUtil;
 import shtykh.util.html.HtmlHelper;
 import shtykh.util.html.TableBuilder;
+import shtykh.util.html.form.ActionBuilder;
 import shtykh.util.html.form.FormMaterial;
 import shtykh.util.html.param.FormParameter;
+import shtykh.util.html.param.FormParameterSignature;
 import shtykh.util.html.param.Parameter;
 
 import javax.swing.*;
@@ -34,8 +36,7 @@ import java.util.List;
 import static shtykh.util.html.HtmlHelper.href;
 import static shtykh.util.html.HtmlHelper.htmlPage;
 import static shtykh.util.html.TagBuilder.tag;
-import static shtykh.util.html.form.FormBuilder.buildForm;
-import static shtykh.util.html.param.FormParameterType.number;
+import static shtykh.util.html.param.FormParameterType.*;
 
 /**
  * Created by shtykh on 29/03/15.
@@ -56,7 +57,6 @@ public class Bot extends JFrame implements FormMaterial {
 	private static final int PORT = 8080;
 	private FormParameter<Long> timeout;
 	private long nextShot = 0;
-
 	public void init() throws HeadlessException, IOException, JSONException, TwitterAPIException {
 		htmlHelper = new HtmlHelper(HOST, PORT);
 		ArrayList<Parrot> parrotsList = new ArrayList<>();
@@ -241,16 +241,6 @@ public class Bot extends JFrame implements FormMaterial {
 	}
 
 	@GET
-	@Path("/editTime")
-	@Consumes("application/x-www-form-urlencoded")
-	public Response editTime(
-			@QueryParam("id") String id,
-			@QueryParam("time") String time) {
-		return home();
-
-	}
-
-	@GET
 	@Path("/removeEvent")
 	public Response removeEvent(@QueryParam("id") int id) {
 		Event eventToRemove = null;
@@ -271,7 +261,8 @@ public class Bot extends JFrame implements FormMaterial {
 	@GET
 	@Path("/editEvent")
 	public Response editEvent(@QueryParam("id") int id, 
-							  @QueryParam("time") String time) {
+							  	@QueryParam("time") String time,
+								@QueryParam("force") boolean force) {
 		Event eventToEdit = null;
 		for (Event event : events) {
 			if (event.getId() == id) {
@@ -283,10 +274,23 @@ public class Bot extends JFrame implements FormMaterial {
 			return Response.status(404).entity("Event with id: " + id + " not found!").build();
 		} else {
 			eventToEdit.setTime(time);
+			eventToEdit.setForced(force);
 			return home();
 		}
 	}
-	
+
+	private static ActionBuilder editEventAction;
+
+	static {
+		try {
+			editEventAction = new ActionBuilder("editEvent")
+					.addParam(Event.class.getDeclaredField("isForced"), new FormParameterSignature("force", checkbox))
+					.addParam(Event.class.getDeclaredField("id"), new FormParameterSignature("id", hidden))
+					.addParam(Event.class.getDeclaredField("time"), new FormParameterSignature("time", datetime_local));
+		} catch (NoSuchFieldException e) {
+			throw new RuntimeException(e);
+		}
+	}
 	@GET
 	@Path("/editEventForm")
 	public Response editEventForm(@QueryParam("id") int id) {
@@ -300,8 +304,18 @@ public class Bot extends JFrame implements FormMaterial {
 		if (eventToEdit == null) {
 			return Response.status(404).entity("Event with id: " + id + " not found!").build();
 		} else {
-			String body = buildForm(eventToEdit, "editEvent");
+			String body = editEventAction.buildForm(eventToEdit);
 			return Response.status(200).entity(htmlPage("Edit event", body)).build();
+		}
+	}
+
+	private static ActionBuilder setTimeoutAction;
+	static {
+		try {
+			setTimeoutAction = new ActionBuilder("setTimeOut")
+					.addParam(Bot.class.getDeclaredField("timeout"), new FormParameterSignature("timeout", number));
+		} catch (NoSuchFieldException e) {
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -366,12 +380,12 @@ public class Bot extends JFrame implements FormMaterial {
 		for (Parrot parrot: parrots.values()) {
 			addParrotToTable(table, parrot);
 		}
-		String body = 
-				buildForm(this, "setTimeout") + 
+		String body =
+				setTimeoutAction.buildForm(this) +
 				timeInfo() +
 				getPath("addParrot", 
 						"Add custom Parrot", 
-						new Parameter("name", "CustomParrot" + parrots.size())) +
+						new Parameter<>("name", "CustomParrot" + parrots.size())) +
 				"<br/>" +
 				table.buildHtml() + 
 				"<br/>" + 
@@ -419,13 +433,6 @@ public class Bot extends JFrame implements FormMaterial {
 			return href(uriBuilder.build(), name);
 		} catch (URISyntaxException e) {
 			return href(htmlHelper.getHome(), "error");
-		}
-	}
-
-	@Override
-	public void renameParametersFor(String action) {
-		if(action.equals("setTimeout")) {
-			timeout.setName("timeout");
 		}
 	}
 }

@@ -26,12 +26,16 @@ public enum FormParameterType {
 	url,
 	month,
 	week,
-	datetime_local;
+	datetime_local,
+	comment;
 
 	@Override
 	public String toString() {
 		return name().replace("_", "-");
 	}
 
+	public boolean isComment() {
+		return comment.equals(this);
+	}
 
 }

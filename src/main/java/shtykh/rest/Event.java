@@ -4,7 +4,9 @@ import org.json.JSONException;
 import shtykh.parrots.Parrot;
 import shtykh.tweets.TwitterAPIException;
 import shtykh.util.html.form.FormMaterial;
-import shtykh.util.html.param.*;
+import shtykh.util.html.param.BooleanParameter;
+import shtykh.util.html.param.Comment;
+import shtykh.util.html.param.FormParameter;
 
 import java.io.IOException;
 import java.util.Date;
@@ -24,9 +26,9 @@ public class Event implements Comparable<Event>, FormMaterial {
 
 	public Event(Parrot parrot, Date time) {
 		super();
-		this.isForced = new FormParameter<>("fFrce", false, Boolean.class, checkbox);
+		this.isForced = new BooleanParameter("force", false);
 		this.parrot   = new Comment<>("Parrot", parrot);
-		this.id       = new HiddenParameter<>("id", lastId++, Integer.class);
+		this.id       = new FormParameter<>("id", lastId++, Integer.class, number);
 		this.time     = new FormParameter<>("Time", time, Date.class, datetime_local);
 	}
 
@@ -70,15 +72,5 @@ public class Event implements Comparable<Event>, FormMaterial {
 
 	public void setTime(String time) {
 		this.time.setValue(time);
-	}
-
-	@Override
-	public void renameParametersFor(String action) {
-		if (action.equals("editEvent")) {
-			this.isForced.setName("force");
-			this.parrot.setName("Parrot");
-			this.id.setName("id");
-			this.time.setName("time");
-		}
 	}
 }

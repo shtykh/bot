@@ -1,10 +1,11 @@
 package shtykh.util.html.form;
 
+import shtykh.util.html.TagBuilder;
+import shtykh.util.html.param.BooleanParameter;
 import shtykh.util.html.param.FormParameter;
 import shtykh.util.html.param.FormParameterType;
 import shtykh.util.html.param.Parameter;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,22 +20,39 @@ public class FormBuilder {
 	private String action;
 	private List<Parameter> members = new ArrayList<>();
 	
-	private FormBuilder(String action) {
+	public FormBuilder(String action) {
 		this.action = action;
 	}
 
-	public FormBuilder addMember(Parameter parameter) {
+	public FormBuilder addParameter(Parameter parameter) {
 		members.add(parameter);
 		return this;
 	}
 
 	private String input(FormParameter parameter) {
+		if (parameter instanceof BooleanParameter 
+				&& parameter.getType().equals(checkbox)) {
+			return checkbox((BooleanParameter) parameter);
+		}
 		return getLabel(parameter) + 
 				tag("input")
 				.params(
 						new Parameter<>("type", parameter.getType()),
 						new Parameter<>("name", parameter.getName()),
 						new Parameter<>("value", parameter.getValueString()));
+	}
+
+	private String checkbox(BooleanParameter parameter) {
+		TagBuilder setTrueInput = tag("input")
+				.params(
+						new Parameter<>("type", checkbox),
+						new Parameter<>("name", parameter.getName()),
+						new Parameter<>("value", "true")
+				);
+		if (parameter.getValue()) {
+			setTrueInput.params(new Parameter<>("checked", "true"));
+		}
+		return getLabel(parameter) + setTrueInput;
 	}
 
 	private String input(FormParameterType type, String value) {
@@ -45,7 +63,7 @@ public class FormBuilder {
 				).toString();
 	}
 
-	private String build(){
+	public String build(){
 		StringBuilder sb = new StringBuilder();
 		sb.append(tag("legend").build("Form for " + action));
 		sb.append(input(reset, "Reset"));
@@ -53,7 +71,11 @@ public class FormBuilder {
 			System.out.println(member);
 			if (member instanceof FormParameter) {
 				FormParameter parameter = (FormParameter) member;
-				sb.append(tag("p").build(input(parameter)));
+				if (parameter.getType().isComment()) {
+					sb.append(tag("p").build(parameter));
+				} else {
+					sb.append(tag("p").build(input(parameter)));
+				}
 			} else {
 				sb.append(tag("p").build(member));
 			}
@@ -68,27 +90,13 @@ public class FormBuilder {
 	}
 
 	private String getLabel(FormParameter member) {
-		return member.getType().equals(hidden) ? "" : member.getName() + " : ";
-	}
-	
-	public static String buildForm(FormMaterial formMaterial, String action) {
-		synchronized (formMaterial) {
-			formMaterial.renameParametersFor(action);
-			FormBuilder builder = new FormBuilder(action);
-			Class<? extends FormMaterial> clazz = formMaterial.getClass();
-			for (Field field : clazz.getDeclaredFields()) {
-				System.out.println(field.getName());
-				if (Parameter.class.isAssignableFrom(field.getType())) {
-					field.setAccessible(true);
-					try {
-						builder.addMember((Parameter) field.get(formMaterial));
-					} catch (IllegalAccessException e) {
-						throw new RuntimeException(e);
-					}
-					field.setAccessible(false);
-				}
-			}
-			return builder.build();
+		switch (member.getType()) {
+			case hidden:
+				return "";
+			case checkbox:
+				return member.getName() + " : set \"true\"";
+			default:
+				return member.getName() + " : ";
 		}
 	}
 }
