@@ -22,13 +22,13 @@ public class FoodParrot extends Parrot {
 											"сгущёнкой"
 											);
 	static {
-		food.setCommentsBefore("Обожралась ",
+		food.setBefore("Обожралась ",
 				"Обкушалась ",
 				"Ухомячилась ",
 				"Объелась ",
 				"Ужралась ",
 				"Уелась ");
-		food.setCommentsAfter(
+		food.setAfter(
 				". Тошнит",
 				". Умираю",
 				". Плохо мне :(",

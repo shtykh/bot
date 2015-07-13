@@ -15,7 +15,7 @@ public class Humidity extends SomethingWithComments {
 
 	public Humidity(Poster poster) {
 		this.poster = poster;
-		setCommentsBefore(
+		setBefore(
 				"Ах да, совсем забыла: ",
 				"",
 				"",
@@ -31,21 +31,21 @@ public class Humidity extends SomethingWithComments {
 		currentWeather = poster.getWeather("State+college");
 		switch(Util.random.nextInt(10)) {
 			case 0: 
-				setCommentsAfter(" А температура и вообще " + round(currentWeather.getTemp_c()));
+				setAfter(" А температура и вообще " + round(currentWeather.getTemp_c()));
 				break;
 			case 1:
-				setCommentsAfter(" А температура и вообще " + round(currentWeather.getTemp_f()) + " (В фаренгейтах, конечно)");
+				setAfter(" А температура и вообще " + round(currentWeather.getTemp_f()) + " (В фаренгейтах, конечно)");
 				break;
 			case 2:
 				Weather perm = poster.getWeather("Perm");
-				setCommentsAfter(" В Перми тем временем " + round(perm.getHumidity()) + "%, #наминуточку");
+				setAfter(" В Перми тем временем " + round(perm.getHumidity()) + "%, #наминуточку");
 				break;
 			case 3:
 				Weather moscow = poster.getWeather("Moscow");
-				setCommentsAfter(" В Москве тем временем " + round(moscow.getHumidity()) + "%, #наминуточку");
+				setAfter(" В Москве тем временем " + round(moscow.getHumidity()) + "%, #наминуточку");
 				break;
 			default: // 4-(10-1)
-				setCommentsAfter("");
+				setAfter("");
 				break;
 				
 		}

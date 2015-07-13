@@ -19,11 +19,11 @@ public class Sweets implements Stringer, Booleaner {
 		this.number = 0;
 		this.newParty = true;
 		black = new Phrase("шоколадная. ", "коричневая. ");
-		black.setCommentsAfter("Но день будет всё равно хорошим :)",
+		black.setAfter("Но день будет всё равно хорошим :)",
 				":(",
 				"Не зря у меня болела голова!");
 		white = new Phrase("ванильная. ", "белая. ");
-		white.setCommentsAfter("И погода хорошая с утра :)",
+		white.setAfter("И погода хорошая с утра :)",
 				":)",
 				"Так я и знала :)",
 				"Всем доброго утра!");

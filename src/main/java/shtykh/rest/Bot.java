@@ -10,6 +10,7 @@ import shtykh.parrots.onlyif.LocationIsChanged;
 import shtykh.parrots.onlyif.Randomly;
 import shtykh.parrots.parrotsimpl.*;
 import shtykh.parrots.poster.Poster;
+import shtykh.parrots.what.Phrase;
 import shtykh.parrots.what.SomethingWithComments;
 import shtykh.parrots.what.Sweets;
 import shtykh.parrots.when.Daily;
@@ -24,7 +25,10 @@ import shtykh.util.html.param.FormParameterSignature;
 import shtykh.util.html.param.Parameter;
 
 import javax.swing.*;
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.awt.*;
@@ -122,7 +126,9 @@ public class Bot extends JFrame implements FormMaterial {
 		try {
 			Bot bot = new Bot();
 			bot.init();
+			bot.addParrot("Test");
 			System.out.println(bot.home().getEntity());
+			System.out.println(bot.editParrotForm("Test").getEntity());
 			System.exit(0);
 		} catch (IOException | JSONException e) {
 			log.error(e);
@@ -341,19 +347,55 @@ public class Bot extends JFrame implements FormMaterial {
 	}
 
 	@GET
+	@Path("/editParrotForm")
+	public Response editParrotForm(@QueryParam("name") String name) {
+		if (!parrots.containsKey(name)) {
+			return Response.status(404).entity("Parrot:" + name + " not found").build();
+		} else {
+			Parrot parrot = parrots.get(name);
+			return Response.status(200).entity(editParrotAction.buildForm(parrot)).build();
+		}
+	}
+
+	private static ActionBuilder editParrotAction;
+	static {
+		try {
+			editParrotAction = new ActionBuilder("editParrot")
+					.addParam(Parrot.class.getDeclaredField("name"), new FormParameterSignature("name", hidden))
+					.addParam(SomethingWithComments.class.getDeclaredField("before"), new FormParameterSignature("before", text))
+					.addParam(Phrase.class.getDeclaredField("cases"), new FormParameterSignature("cases", text))
+					.addParam(SomethingWithComments.class.getDeclaredField("after"), new FormParameterSignature("after", text));
+		} catch (NoSuchFieldException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GET
+	@Path("/editParrot")
+	public Response editParrot(@QueryParam("name") String name,
+							   @QueryParam("before") String before,
+							   @QueryParam("cases") String cases,
+							   @QueryParam("after") String after) {
+		if (!parrots.containsKey(name)) {
+			return Response.status(404).entity("Parrot:" + name + " not found").build();
+		} else {
+			Parrot parrot = parrots.get(name);
+			if (parrot.getWhat() instanceof SomethingWithComments) {
+				((SomethingWithComments) parrot.getWhat()).edit(before, cases, after);
+			}
+			return home();
+		}
+	}
+
+	@GET
 	@Path("/addParrot")
 	public Response addParrot(@QueryParam("name") String name) {
-		Parrot newParrot = new CustomParrot(new SomethingWithComments() {
-			@Override
-			protected void updateBeforeSaying() {
-				
-			}
-
-			@Override
-			protected String getMainLine() {
-				return null;
-			}
-		}, new Daily(), new Randomly(), poster, name);
+		Parrot newParrot = new CustomParrot(
+				new Phrase("I am " + name), 
+				new Daily(), 
+				new Randomly(), 
+				poster, 
+				name);
 		parrots.put(name, newParrot);
 		return home();
 	}
@@ -371,6 +413,7 @@ public class Bot extends JFrame implements FormMaterial {
 	public Response home() {
 		TableBuilder table = new TableBuilder(
 				"Parrot Name",
+				"Edit",
 				"Events",
 				"Last Posts",
 				"Posts",
@@ -402,6 +445,8 @@ public class Bot extends JFrame implements FormMaterial {
 		Parameter nameParameter = new Parameter<>("name", name);
 		table.addRow(
 				parrot.getParrotName(),
+				getPath("editParrotForm", "Edit", 
+						nameParameter),
 				getPath("events", "Events",
 						nameParameter),
 				getPath("log", "Last posts",

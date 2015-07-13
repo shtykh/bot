@@ -40,7 +40,14 @@ public class ActionBuilder {
 		} else {
 			return;
 		}
-		Class<? extends FormMaterial> clazz = formMaterial.getClass();
+		Class clazz = formMaterial.getClass();
+		while(FormMaterial.class.isAssignableFrom(clazz)) {
+			addParameters(clazz, builder, formMaterial, seen);
+			clazz = clazz.getSuperclass();
+		}
+	}
+
+	private void addParameters(Class<? extends FormMaterial> clazz, FormBuilder builder, FormMaterial formMaterial, List<FormMaterial> seen) {
 		for (Field field : clazz.getDeclaredFields()) {
 			if (FormMaterial.class.isAssignableFrom(field.getType())) {
 				addParameters(builder, get(field, formMaterial, FormMaterial.class), seen);

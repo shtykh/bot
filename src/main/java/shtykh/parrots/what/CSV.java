@@ -7,18 +7,18 @@ import static shtykh.util.Util.random;
 /**
  * Created by shtykh on 12/07/15.
  */
-public class CommaSeparatedValues {
+public class CSV {
 	private String value;
 
-	public CommaSeparatedValues(String... array) {
+	public CSV(String... array) {
 		setArray(array);
 	}
 
-	public CommaSeparatedValues setArray(String... array) {
+	public CSV setArray(String... array) {
 		StringBuilder sb = new StringBuilder();
 		for (String s : array) {
 			sb.append(s)
-					.append(", ");
+					.append(",");
 		}
 		int lastCommaIndex = sb.lastIndexOf(",");
 		if (lastCommaIndex > 0) {
@@ -28,11 +28,11 @@ public class CommaSeparatedValues {
 	}
 
 	public String[] asArray() {
-		return value.split(",( )*");
+		return value.split(",");
 	}
 
-	public static CommaSeparatedValues fromArray(String... array) {
-		CommaSeparatedValues csv = new CommaSeparatedValues();
+	public static CSV fromArray(String... array) {
+		CSV csv = new CSV();
 		return csv.setArray(array);
 	}
 	

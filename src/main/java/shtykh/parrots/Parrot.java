@@ -11,6 +11,8 @@ import shtykh.rest.Event;
 import shtykh.tweets.TwitterAPIException;
 import shtykh.util.html.HtmlHelper;
 import shtykh.util.html.TableBuilder;
+import shtykh.util.html.form.FormMaterial;
+import shtykh.util.html.param.FormParameter;
 
 import java.io.IOException;
 import java.util.Date;
@@ -20,7 +22,7 @@ import java.util.LinkedList;
  * Created by shtykh on 29/03/15.
  */
 
-public abstract class Parrot {
+public abstract class Parrot implements FormMaterial  {
 	private static Logger log = Logger.getLogger(Parrot.class);
 	private final Stringer what;
 	private final Longer when;
@@ -29,7 +31,7 @@ public abstract class Parrot {
 
 	private LinkedList<PostEntry> postsLog;
 
-	private final String name;
+	private final FormParameter<String> name;
 	
 	public Parrot(Stringer what,
 				  Longer when,
@@ -40,7 +42,7 @@ public abstract class Parrot {
 		this.when = when;
 		this.ifWhat = ifWhat;
 		this.poster = poster;
-		this.name = name;
+		this.name = new FormParameter<>("name", name, String.class);
 		postsLog = new LinkedList<>();
 	}
 	
@@ -79,7 +81,7 @@ public abstract class Parrot {
 	}
 
 	public String getParrotName() {
-		return name;
+		return name.getValueString();
 	}
 	
 	public String getPostLog(int n) {
@@ -102,5 +104,9 @@ public abstract class Parrot {
 	@Override
 	public String toString() {
 		return getParrotName();
+	}
+
+	public Stringer getWhat() {
+		return what;
 	}
 }
