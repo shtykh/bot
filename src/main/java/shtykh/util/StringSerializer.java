@@ -1,5 +1,6 @@
 package shtykh.util;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import shtykh.parrots.what.CSV;
 
 import java.text.DateFormat;
@@ -17,23 +18,23 @@ public abstract class StringSerializer<T> {
 	static {
 		map.put(Integer.class, 	new StringSerializer<Integer>() {
 			@Override
-			public Integer fromString(String string) {
+			protected Integer fromStringInternal(String string) {
 				return Integer.decode(string);
 			}
 
 			@Override
-			public String toString(Integer stringSerializable) {
+			protected String toStringInternal(Integer stringSerializable) {
 				return stringSerializable.toString();
 			}
 		});
 		map.put(Long.class, new StringSerializer<Long>() {
 			@Override
-			public Long fromString(String string) {
+			protected Long fromStringInternal(String string) {
 				return Long.decode(string);
 			}
 
 			@Override
-			public String toString(Long stringSerializable) {
+			protected String toStringInternal(Long stringSerializable) {
 				return stringSerializable.toString();
 			}
 		});
@@ -41,7 +42,7 @@ public abstract class StringSerializer<T> {
 		map.put(Date.class, new StringSerializer<Date>() {
 			private DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 			@Override
-			public Date fromString(String string) {
+			protected Date fromStringInternal(String string) {
 				try {
 					return df.parse(string);
 				} catch (ParseException e) {
@@ -49,30 +50,30 @@ public abstract class StringSerializer<T> {
 				}
 			}
 			@Override
-			public String toString(Date time) {
+			protected String toStringInternal(Date time) {
 				return df.format(time);
 			}
 		});
 		map.put(Boolean.class, 	new StringSerializer<Boolean>() {
 			@Override
-			public Boolean fromString(String string) {
+			protected Boolean fromStringInternal(String string) {
 				return Boolean.valueOf(string);
 			}
 
 			@Override
-			public String toString(Boolean stringSerializable) {
+			protected String toStringInternal(Boolean stringSerializable) {
 				return stringSerializable.toString();
 			}
 		});
 		
 		map.put(CSV.class, new StringSerializer<CSV>() {
 			@Override
-			public CSV fromString(String string) {
+			protected CSV fromStringInternal(String string) {
 				return new CSV(string);
 			}
 
 			@Override
-			public String toString(CSV csv) {
+			protected String toStringInternal(CSV csv) {
 				return csv.toString();
 			}
 		});
@@ -80,20 +81,31 @@ public abstract class StringSerializer<T> {
 		map.put(String.class, new StringSerializer<String>() {
 
 			@Override
-			public String fromString(String string) {
+			protected String fromStringInternal(String string) {
 				return string;
 			}
 
 			@Override
-			public String toString(String string) {
+			protected String toStringInternal(String string) {
 				return string;
 			}
 		});
 		
 	}
 
-	public abstract T fromString(String string);
-	public abstract String toString(T stringSerializable);
+	public T fromString(String string) {
+		string = StringEscapeUtils.unescapeHtml4(string);
+		return fromStringInternal(string);
+	}
+
+
+	public String toString(T stringSerializable) {
+		String s = toStringInternal(stringSerializable);
+		return StringEscapeUtils.escapeHtml4(s);
+	}
+	
+	protected abstract T fromStringInternal(String string);
+	protected abstract String toStringInternal(T stringSerializable);
 
 	public static <T> StringSerializer<T> getForClass(Class<T> clazz) {
 		return map.get(clazz);

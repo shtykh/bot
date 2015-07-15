@@ -353,7 +353,8 @@ public class Bot extends JFrame implements FormMaterial {
 			return Response.status(404).entity("Parrot:" + name + " not found").build();
 		} else {
 			Parrot parrot = parrots.get(name);
-			return Response.status(200).entity(editParrotAction.buildForm(parrot)).build();
+			return Response.status(200).entity(
+					htmlPage("Edit Parrot " + name, editParrotAction.buildForm(parrot))).build();
 		}
 	}
 

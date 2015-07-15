@@ -9,7 +9,7 @@ import static shtykh.parrots.what.CSV.fromArray;
  */
 public class Phrase extends SomethingWithComments {
 	protected final FormParameter<CSV> cases
-			= new FormParameter("cases", new CSV(), CSV.class);
+			= new FormParameter<>("cases", new CSV(), CSV.class);
 
 	public Phrase(String... cases) {
 		this.cases.setValue(fromArray(cases));

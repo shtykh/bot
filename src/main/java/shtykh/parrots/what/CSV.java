@@ -37,7 +37,7 @@ public class CSV {
 	}
 	
 	public String toString() {
-		return value;
+		return value == null ? "" : value;
 	}
 
 	public void setString(String value) {
@@ -53,6 +53,10 @@ public class CSV {
 	}
 	
 	private String randomFromArray(String[] array) {
-		return array[random.nextInt(array.length)];
+		if (array.length == 0) {
+			return "";
+		} else {
+			return array[random.nextInt(array.length)];
+		}
 	}
 }

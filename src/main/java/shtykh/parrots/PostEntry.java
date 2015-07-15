@@ -33,8 +33,8 @@ public class PostEntry {
 
 	public String toHtml() {
 		TableBuilder table = 
-				new TableBuilder("Post", "Response", "Date")
-						.addRow(post, response, date.toString());
+				new TableBuilder("Post", "Date", "Response")
+						.addRow(post, date.toString(), response);
 		return HtmlHelper.htmlPage("Post", table.buildHtml());
 	}
 }
