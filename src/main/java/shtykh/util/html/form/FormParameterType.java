@@ -1,10 +1,11 @@
-package shtykh.util.html.param;
+package shtykh.util.html.form;
 
 /**
  * Created by shtykh on 10/07/15.
  */
 public enum FormParameterType {
 	text,
+	textarea,
 	submit,
 	button,
 	checkbox,

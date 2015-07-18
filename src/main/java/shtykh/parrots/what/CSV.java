@@ -18,17 +18,17 @@ public class CSV {
 		StringBuilder sb = new StringBuilder();
 		for (String s : array) {
 			sb.append(s)
-					.append(",");
+					.append("\n");
 		}
-		int lastCommaIndex = sb.lastIndexOf(",");
+		int lastCommaIndex = sb.lastIndexOf("\n");
 		if (lastCommaIndex > 0) {
-			value = sb.substring(0, sb.lastIndexOf(","));
+			value = sb.substring(0, sb.lastIndexOf("\n"));
 		}
 		return this;
 	}
 
 	public String[] asArray() {
-		return value.split(",");
+		return value.split("\n");
 	}
 
 	public static CSV fromArray(String... array) {

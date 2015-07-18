@@ -27,7 +27,7 @@ public class HtmlHelper {
 				.setPort(port)
 				.setPath(postfix);
 		for (Parameter parameter : parameters) {
-			uriBuilder.addParameter(parameter.getName(), String.valueOf(parameter.getValue()));
+			uriBuilder.addParameter(parameter.getName(), parameter.getValueString());
 		};
 		return uriBuilder;
 	}
@@ -42,7 +42,7 @@ public class HtmlHelper {
 			name = href;
 		}
 		return tag("a")
-				.params(new Parameter("href", href))
+				.params(new Parameter<>("href", href))
 				.build(name);
 	}
 
@@ -106,7 +106,7 @@ public class HtmlHelper {
 		}
 
 		public HtmlBuilder body(String body) {
-			this.body = body.replace("\n", "<br/>");
+			this.body = body;
 			return this;
 		}
 

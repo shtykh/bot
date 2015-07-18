@@ -1,16 +1,13 @@
 package shtykh.util.html.form;
 
 import shtykh.util.html.TagBuilder;
-import shtykh.util.html.param.BooleanParameter;
-import shtykh.util.html.param.FormParameter;
-import shtykh.util.html.param.FormParameterType;
 import shtykh.util.html.param.Parameter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static shtykh.util.html.TagBuilder.tag;
-import static shtykh.util.html.param.FormParameterType.*;
+import static shtykh.util.html.form.FormParameterType.*;
 
 
 /**
@@ -19,40 +16,61 @@ import static shtykh.util.html.param.FormParameterType.*;
 public class FormBuilder {
 	private String action;
 	private List<Parameter> members = new ArrayList<>();
-	
+
 	public FormBuilder(String action) {
 		this.action = action;
 	}
 
-	public FormBuilder addParameter(Parameter parameter) {
+	public FormBuilder addMember(Parameter parameter) {
 		members.add(parameter);
 		return this;
 	}
 
-	private String input(FormParameter parameter) {
-		if (parameter instanceof BooleanParameter 
-				&& parameter.getType().equals(checkbox)) {
-			return checkbox((BooleanParameter) parameter);
+	private String formFor(FormParameter parameter) {
+		String form = "";
+		switch(parameter.getType()) {
+			case checkbox:
+				if(parameter.getMaterial() instanceof BooleanParameterMaterial) {
+					form = checkbox(parameter);
+				}
+				break;
+			case textarea:
+				form = textarea(parameter);
+			break;
+			default:
+				form = input(parameter);
+			break;
 		}
-		return getLabel(parameter) + 
-				tag("input")
-				.params(
-						new Parameter<>("type", parameter.getType()),
-						new Parameter<>("name", parameter.getName()),
-						new Parameter<>("value", parameter.getValueString()));
+		return getLabel(parameter) + form;
 	}
 
-	private String checkbox(BooleanParameter parameter) {
+	private String input(FormParameter parameter) {
+		return getLabel(parameter) +
+				tag("input")
+						.params(
+								new Parameter<>("type", parameter.getType()),
+								new Parameter<>("name", parameter.getName()),
+								new Parameter<>("value", parameter.getValueString()));
+	}
+
+	private String textarea(FormParameter parameter) {
+		return "<br>" + tag("textarea").params(
+				new Parameter<>("rows", "4"),
+				new Parameter<>("cols", "50"),
+				new Parameter<>("name", parameter.getName())).build(parameter.getValueString());
+	}
+
+	private String checkbox(FormParameter<Boolean> parameter) {
 		TagBuilder setTrueInput = tag("input")
 				.params(
 						new Parameter<>("type", checkbox),
 						new Parameter<>("name", parameter.getName()),
 						new Parameter<>("value", "true")
 				);
-		if (parameter.getValue()) {
+		if (parameter.getMaterial().get()) {
 			setTrueInput.params(new Parameter<>("checked", "true"));
 		}
-		return getLabel(parameter) + setTrueInput;
+		return setTrueInput.toString();
 	}
 
 	private String input(FormParameterType type, String value) {
@@ -74,7 +92,7 @@ public class FormBuilder {
 				if (parameter.getType().isComment()) {
 					sb.append(tag("p").build(parameter));
 				} else {
-					sb.append(tag("p").build(input(parameter)));
+					sb.append(tag("p").build(formFor(parameter)));
 				}
 			} else {
 				sb.append(tag("p").build(member));

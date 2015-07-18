@@ -3,15 +3,13 @@ package shtykh.rest;
 import org.json.JSONException;
 import shtykh.parrots.Parrot;
 import shtykh.tweets.TwitterAPIException;
+import shtykh.util.html.form.BooleanParameterMaterial;
+import shtykh.util.html.form.CommentMaterial;
 import shtykh.util.html.form.FormMaterial;
-import shtykh.util.html.param.BooleanParameter;
-import shtykh.util.html.param.Comment;
-import shtykh.util.html.param.FormParameter;
+import shtykh.util.html.form.FormParameterMaterial;
 
 import java.io.IOException;
 import java.util.Date;
-
-import static shtykh.util.html.param.FormParameterType.*;
 
 /**
  * Created by shtykh on 05/07/15.
@@ -19,58 +17,58 @@ import static shtykh.util.html.param.FormParameterType.*;
 public class Event implements Comparable<Event>, FormMaterial {
 	private static int lastId = 0;
 
-	private FormParameter<Integer> id;
-	private Comment<Parrot> parrot;
-	private FormParameter<Boolean> isForced;
-	private FormParameter<Date> time;
+	private FormParameterMaterial<Integer> id;
+	private FormParameterMaterial<Parrot> parrot;
+	private FormParameterMaterial<Boolean> isForced;
+	private FormParameterMaterial<Date> time;
 
 	public Event(Parrot parrot, Date time) {
 		super();
-		this.isForced = new BooleanParameter("force", false);
-		this.parrot   = new Comment<>("Parrot", parrot);
-		this.id       = new FormParameter<>("id", lastId++, Integer.class, number);
-		this.time     = new FormParameter<>("Time", time, Date.class, datetime_local);
+		this.isForced = new BooleanParameterMaterial(false);
+		this.parrot   = new CommentMaterial<>(parrot, Parrot.class);
+		this.id       = new FormParameterMaterial<>(lastId++, Integer.class);
+		this.time     = new FormParameterMaterial<>(time, Date.class);
 	}
 
 	@Override
 	public String toString() {
-		return parrot.getValue() + id.getValueString();
+		return parrot.getValueString() + id.getValueString();
 	}
 
 	public Parrot getParrot() {
-		return parrot.getValue();
+		return parrot.get();
 	}
 
 	public Date getTime() {
-		return time.getValue();
+		return time.get();
 	}
 
 	@Override
 	public int compareTo(Event o) {
-		return time.getValue().compareTo(o.time.getValue());
+		return time.get().compareTo(o.time.get());
 	}
 
 	public int getId() {
-		return id.getValue();
+		return id.get();
 	}
 
 	public boolean isInPast() {
-		return time.getValue().before(new Date());
+		return time.get().before(new Date());
 	}
 
 	public boolean isForced() {
-		return isForced.getValue();
+		return isForced.get();
 	}
 
 	public void setForced(boolean isForced) {
-		this.isForced.setValue(isForced);
+		this.isForced.set(isForced);
 	}
 
 	public void tryToSay() throws TwitterAPIException, JSONException, IOException {
-		parrot.getValue().tryToSay(this);
+		parrot.get().tryToSay(this);
 	}
 
 	public void setTime(String time) {
-		this.time.setValue(time);
+		this.time.setValueString(time);
 	}
 }

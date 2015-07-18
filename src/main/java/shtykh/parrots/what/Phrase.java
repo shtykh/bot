@@ -1,6 +1,6 @@
 package shtykh.parrots.what;
 
-import shtykh.util.html.param.FormParameter;
+import shtykh.util.html.form.FormParameterMaterial;
 
 import static shtykh.parrots.what.CSV.fromArray;
 
@@ -8,11 +8,11 @@ import static shtykh.parrots.what.CSV.fromArray;
  * Created by shtykh on 29/03/15.
  */
 public class Phrase extends SomethingWithComments {
-	protected final FormParameter<CSV> cases
-			= new FormParameter<>("cases", new CSV(), CSV.class);
+	protected final FormParameterMaterial<CSV> cases
+			= new FormParameterMaterial<>(new CSV(), CSV.class);
 
 	public Phrase(String... cases) {
-		this.cases.setValue(fromArray(cases));
+		this.cases.set(fromArray(cases));
 	}
 
 	@Override
@@ -22,7 +22,7 @@ public class Phrase extends SomethingWithComments {
 
 	@Override
 	protected String getMainLine() {
-		return cases.getValue().getRandom();
+		return cases.get().getRandom();
 	}
 
 	@Override
@@ -34,6 +34,6 @@ public class Phrase extends SomethingWithComments {
 	}
 	
 	public void setCases(String cases) {
-		this.cases.setValue(cases);
+		this.cases.setValueString(cases);
 	}
 }

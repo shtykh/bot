@@ -20,8 +20,8 @@ import shtykh.util.html.HtmlHelper;
 import shtykh.util.html.TableBuilder;
 import shtykh.util.html.form.ActionBuilder;
 import shtykh.util.html.form.FormMaterial;
-import shtykh.util.html.param.FormParameter;
-import shtykh.util.html.param.FormParameterSignature;
+import shtykh.util.html.form.FormParameterMaterial;
+import shtykh.util.html.form.FormParameterSignature;
 import shtykh.util.html.param.Parameter;
 
 import javax.swing.*;
@@ -40,7 +40,7 @@ import java.util.List;
 import static shtykh.util.html.HtmlHelper.href;
 import static shtykh.util.html.HtmlHelper.htmlPage;
 import static shtykh.util.html.TagBuilder.tag;
-import static shtykh.util.html.param.FormParameterType.*;
+import static shtykh.util.html.form.FormParameterType.*;
 
 /**
  * Created by shtykh on 29/03/15.
@@ -59,14 +59,14 @@ public class Bot extends JFrame implements FormMaterial {
 	
 	private static final String HOST = "localhost";
 	private static final int PORT = 8080;
-	private FormParameter<Long> timeout;
+	private FormParameterMaterial<Long> timeout;
 	private long nextShot = 0;
 	public void init() throws HeadlessException, IOException, JSONException, TwitterAPIException {
 		htmlHelper = new HtmlHelper(HOST, PORT);
 		ArrayList<Parrot> parrotsList = new ArrayList<>();
 		parrots = new HashMap<>();
 		events = new ArrayList<>();
-		timeout = new FormParameter<>("timeout", 60000L, Long.class, number);
+		timeout = new FormParameterMaterial<>(60000L, Long.class);
 		
 		parrotsList.add(new FoodParrot(poster));
 		parrotsList.add(new HangoverParrot(poster));
@@ -85,8 +85,8 @@ public class Bot extends JFrame implements FormMaterial {
 			public void run() {
 				try {
 					while (true) {
-						nextShot = System.currentTimeMillis() + timeout.getValue();
-						Thread.sleep(timeout.getValue());
+						nextShot = System.currentTimeMillis() + timeout.get();
+						Thread.sleep(timeout.get());
 						sayPast();
 					}
 				} catch (InterruptedException | IOException | JSONException | TwitterAPIException e) {
@@ -169,7 +169,7 @@ public class Bot extends JFrame implements FormMaterial {
 		for (Event event : events) {
 			table.addRow(getEventTableRow(event));
 		}
-		return table;
+		return table.setTitle("Events:");
 	}
 
 	private TableBuilder createEventTableBuilder() {
@@ -329,7 +329,7 @@ public class Bot extends JFrame implements FormMaterial {
 	@Produces(MediaType.TEXT_HTML)
 	@Path("/setTimeout")
 	public Response setTimeout(@QueryParam("timeout") String timeout) {
-		this.timeout.setValue(timeout);
+		this.timeout.setValueString(timeout);
 		return home();
 	}
 
@@ -363,9 +363,9 @@ public class Bot extends JFrame implements FormMaterial {
 		try {
 			editParrotAction = new ActionBuilder("editParrot")
 					.addParam(Parrot.class.getDeclaredField("name"), new FormParameterSignature("name", hidden))
-					.addParam(SomethingWithComments.class.getDeclaredField("before"), new FormParameterSignature("before", text))
-					.addParam(Phrase.class.getDeclaredField("cases"), new FormParameterSignature("cases", text))
-					.addParam(SomethingWithComments.class.getDeclaredField("after"), new FormParameterSignature("after", text));
+					.addParam(SomethingWithComments.class.getDeclaredField("before"), new FormParameterSignature("before", textarea))
+					.addParam(Phrase.class.getDeclaredField("cases"), new FormParameterSignature("cases", textarea))
+					.addParam(SomethingWithComments.class.getDeclaredField("after"), new FormParameterSignature("after", textarea));
 		} catch (NoSuchFieldException e) {
 			throw new RuntimeException(e);
 		}
@@ -392,7 +392,7 @@ public class Bot extends JFrame implements FormMaterial {
 	@Path("/addParrot")
 	public Response addParrot(@QueryParam("name") String name) {
 		Parrot newParrot = new CustomParrot(
-				new Phrase("I am " + name), 
+				new Phrase("I am " + name, "I am " + name, "I am " + name, "I am " + name, "I am fucking " + name),
 				new Daily(), 
 				new Randomly(), 
 				poster, 
@@ -425,19 +425,18 @@ public class Bot extends JFrame implements FormMaterial {
 			addParrotToTable(table, parrot);
 		}
 		String body =
-				setTimeoutAction.buildForm(this) +
-				timeInfo() +
-				getPath("addParrot", 
-						"Add custom Parrot", 
-						new Parameter<>("name", "CustomParrot" + parrots.size())) +
+				allEventsTable().buildHtml() + 
 				"<br/>" +
-				table.buildHtml() + 
-				"<br/>" + 
-				allEventsTable().buildHtml();
+				table.setTitle("Parrots:").buildHtml() +
+				getPath("addParrot",
+						"Add custom Parrot",
+						new Parameter<>("name", "CustomParrot" + parrots.size())) + 
+				"<br/><br/>" +
+				setTimeoutAction.buildForm(this);
 		if(parrots.isEmpty()) {
 			body = "is empty";
 		}
-		String page = htmlPage("Parrots list", "Parrots are:", body);
+		String page = htmlPage("Parrots list", timeInfo(), body);
 		return Response.status(200).entity(page).build();
 	}
 
@@ -464,12 +463,9 @@ public class Bot extends JFrame implements FormMaterial {
 	}
 
 	private String timeInfo() {
-		String now = "Now  is " + new Date();
-		String br = "<br>";
-		String next = "Next is " + new Date(nextShot);
 		String refreshButton = getPath("", "" + (nextShot - System.currentTimeMillis()) / 1000) + " sec";
 		String timeTillNext = tag("h2").build("Time till next shot: " + refreshButton);
-		String result = now + br + next + timeTillNext;
+		String result = timeTillNext;
 		return result;
 	}
 
