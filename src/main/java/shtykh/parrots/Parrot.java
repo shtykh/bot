@@ -11,9 +11,10 @@ import shtykh.rest.Event;
 import shtykh.tweets.TwitterAPIException;
 import shtykh.util.html.HtmlHelper;
 import shtykh.util.html.TableBuilder;
-import shtykh.util.html.form.FormMaterial;
-import shtykh.util.html.form.FormParameterMaterial;
+import shtykh.util.html.form.material.FormMaterial;
+import shtykh.util.html.form.material.FormParameterMaterial;
 
+import java.awt.*;
 import java.io.IOException;
 import java.util.Date;
 import java.util.LinkedList;
@@ -28,6 +29,7 @@ public abstract class Parrot implements FormMaterial  {
 	private final Longer when;
 	private final Booleaner ifWhat;
 	private final Poster poster;
+	private final FormParameterMaterial<Color> color;
 
 	private LinkedList<PostEntry> postsLog;
 
@@ -37,13 +39,15 @@ public abstract class Parrot implements FormMaterial  {
 				  Longer when,
 				  Booleaner ifWhat,
 				  Poster poster, 
-				  String name) {
+				  String name, 
+				  Color color) {
 		this.what = what;
 		this.when = when;
 		this.ifWhat = ifWhat;
 		this.poster = poster;
 		this.name = new FormParameterMaterial<>(name, String.class);
 		postsLog = new LinkedList<>();
+		this.color = new FormParameterMaterial<>(color, Color.class);
 	}
 	
 	public Event generateEvent() {
@@ -69,14 +73,14 @@ public abstract class Parrot implements FormMaterial  {
 		PostEntry postEntry = pushToLog(post, result);
 		return postEntry.toHtml();
 	}
-
+	
 	private PostEntry pushToLog(String post) {
 		return pushToLog(post, "");
 	}
 
 	private PostEntry pushToLog(String post, String responce) {
 		PostEntry postEntry = new PostEntry(post, responce, new Date());
-		postsLog.push(postEntry);	
+		postsLog.push(postEntry);
 		return postEntry;
 	}
 
@@ -87,18 +91,18 @@ public abstract class Parrot implements FormMaterial  {
 	public void setParrotName(String newName) {
 		name.set(newName);
 	}
-	
+
 	public String getPostLog(int n) {
 		TableBuilder table = new TableBuilder("Post", "Response", "Date");
 		int postsNumber = Math.min(n, postsLog.size());
 		for (int i = 0; i < postsNumber; i++) {
 			PostEntry postEntry = postsLog.get(i);
 			table.addRow(
-					postEntry.getPost(), 
-					postEntry.getResponse(), 
+					postEntry.getPost(),
+					postEntry.getResponse(),
 					postEntry.getDate().toString());
 		}
-		return HtmlHelper.htmlPage(name + " last " + postsNumber + " posts", table.buildHtml());
+		return HtmlHelper.htmlPage(name.getValueString() + " last " + postsNumber + " posts", table.buildHtml());
 	}
 
 	public int getPostsNumber() {
@@ -112,5 +116,13 @@ public abstract class Parrot implements FormMaterial  {
 
 	public Stringer getWhat() {
 		return what;
+	}
+
+	public void setColor(String colorhex) {
+		color.setValueString(colorhex);
+	}
+
+	public String getColorHex() {
+		return color.getValueString();
 	}
 }

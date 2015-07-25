@@ -6,6 +6,8 @@ import shtykh.parrots.poster.Poster;
 import shtykh.parrots.what.Phrase;
 import shtykh.parrots.when.OnceIn;
 
+import java.awt.*;
+
 /**
  * Created by shtykh on 29/03/15.
  */
@@ -36,6 +38,6 @@ public class FoodParrot extends Parrot {
 				"");
 	}
 	public FoodParrot(Poster poster) {
-		super(food, new OnceIn(1, 3), new Probably(0.7), poster, "FoodParrot");
+		super(food, new OnceIn(1, 3), new Probably(0.7), poster, "FoodParrot", Color.YELLOW.brighter());
 	}
 }

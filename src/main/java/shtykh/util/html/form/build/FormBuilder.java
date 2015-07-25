@@ -1,13 +1,16 @@
-package shtykh.util.html.form;
+package shtykh.util.html.form.build;
 
 import shtykh.util.html.TagBuilder;
+import shtykh.util.html.form.material.BooleanParameterMaterial;
+import shtykh.util.html.form.param.FormParameter;
+import shtykh.util.html.form.param.FormParameterType;
 import shtykh.util.html.param.Parameter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static shtykh.util.html.TagBuilder.tag;
-import static shtykh.util.html.form.FormParameterType.*;
+import static shtykh.util.html.form.param.FormParameterType.*;
 
 
 /**
@@ -45,12 +48,12 @@ public class FormBuilder {
 	}
 
 	private String input(FormParameter parameter) {
-		return getLabel(parameter) +
-				tag("input")
+		return tag("input")
 						.params(
 								new Parameter<>("type", parameter.getType()),
 								new Parameter<>("name", parameter.getName()),
-								new Parameter<>("value", parameter.getValueString()));
+								new Parameter<>("value", parameter.getValueString()))
+				.toString();
 	}
 
 	private String textarea(FormParameter parameter) {
@@ -86,7 +89,6 @@ public class FormBuilder {
 		sb.append(tag("legend").build("Form for " + action));
 		sb.append(input(reset, "Reset"));
 		for(Parameter member: members) {
-			System.out.println(member);
 			if (member instanceof FormParameter) {
 				FormParameter parameter = (FormParameter) member;
 				if (parameter.getType().isComment()) {

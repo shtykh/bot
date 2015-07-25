@@ -16,12 +16,11 @@ import shtykh.parrots.what.Sweets;
 import shtykh.parrots.when.Daily;
 import shtykh.tweets.TwitterAPIException;
 import shtykh.ui.UiUtil;
+import shtykh.util.html.ColoredTable;
 import shtykh.util.html.HtmlHelper;
 import shtykh.util.html.TableBuilder;
-import shtykh.util.html.form.ActionBuilder;
-import shtykh.util.html.form.FormMaterial;
-import shtykh.util.html.form.FormParameterMaterial;
-import shtykh.util.html.form.FormParameterSignature;
+import shtykh.util.html.form.material.FormMaterial;
+import shtykh.util.html.form.material.FormParameterMaterial;
 import shtykh.util.html.param.Parameter;
 
 import javax.swing.*;
@@ -40,7 +39,6 @@ import java.util.List;
 import static shtykh.util.html.HtmlHelper.href;
 import static shtykh.util.html.HtmlHelper.htmlPage;
 import static shtykh.util.html.TagBuilder.tag;
-import static shtykh.util.html.form.FormParameterType.*;
 
 /**
  * Created by shtykh on 29/03/15.
@@ -143,11 +141,13 @@ public class Bot extends JFrame implements FormMaterial {
 			return Response.status(404).entity("Parrot:" + name + " not found").build();
 		} else {
 			Parrot parrot = parrots.get(name);
-			TableBuilder table = createEventTableBuilder();
+			ColoredTable table = createEventTableBuilder();
 			Collections.sort(events);
+			int eventNumber = 1;
 			for (Event event : events) {
 				if (event.getParrot().getParrotName().equals(parrot.getParrotName())) {
 					table.addRow(getEventTableRow(event));
+					table.addColor(eventNumber++, 1, event.getParrot().getColorHex());
 				}
 			}
 			String result = htmlPage(parrot.getParrotName() + " events", table.buildHtml());
@@ -164,16 +164,18 @@ public class Bot extends JFrame implements FormMaterial {
 	}
 
 	private TableBuilder allEventsTable() {
-		TableBuilder table = createEventTableBuilder();
+		ColoredTable table = createEventTableBuilder();
 		Collections.sort(events);
+		int eventNumber = 1;
 		for (Event event : events) {
 			table.addRow(getEventTableRow(event));
+			table.addColor(eventNumber++, 1, event.getParrot().getColorHex());
 		}
 		return table.setTitle("Events:");
 	}
 
-	private TableBuilder createEventTableBuilder() {
-		return new TableBuilder(
+	private ColoredTable createEventTableBuilder() {
+		return new ColoredTable(
 				/*0*/"Id",
 				/*1*/"Parrot",
 				/*2*/"When",
@@ -186,21 +188,22 @@ public class Bot extends JFrame implements FormMaterial {
 		String id = String.valueOf(event.getId());
 		String pastColor = event.isInPast() ? "red" : "green";
 		boolean forced = event.isForced();
+		Parameter idParam = new Parameter<>("id", id);
 		return new String[]{
 				/*0*/id,
 				/*1*/event.getParrot().getParrotName(),
 				/*2*/colorTag(event.getTime().toString(), pastColor),
-				/*3*/getPath("editEventForm", "Edit" , new Parameter("id", id)),
+				/*3*/getPath("editEventForm", "Edit" , idParam),
 				/*4*/getPath("forceEvent",
 						forced ? colorTag("Unforce", "red") : colorTag("Force", "green"),
-						new Parameter("id", id),
-						new Parameter("force", String.valueOf(!forced))),
-				/*5*/getPath("removeEvent", "Remove" , new Parameter("id", id))
+						idParam,
+						new Parameter<>("force", String.valueOf(!forced))),
+				/*5*/getPath("removeEvent", "Remove" , idParam)
 		};
 	}
 
 	private String colorTag(String value, String color) {
-		return "<font color=\"" + color +"\">" + value + "</color";
+		return tag("font").params(new Parameter<>("color", color)).build(value);
 	}
 
 	@GET
@@ -284,19 +287,7 @@ public class Bot extends JFrame implements FormMaterial {
 			return home();
 		}
 	}
-
-	private static ActionBuilder editEventAction;
-
-	static {
-		try {
-			editEventAction = new ActionBuilder("editEvent")
-					.addParam(Event.class.getDeclaredField("isForced"), new FormParameterSignature("force", checkbox))
-					.addParam(Event.class.getDeclaredField("id"), new FormParameterSignature("id", hidden))
-					.addParam(Event.class.getDeclaredField("time"), new FormParameterSignature("time", datetime_local));
-		} catch (NoSuchFieldException e) {
-			throw new RuntimeException(e);
-		}
-	}
+	
 	@GET
 	@Path("/editEventForm")
 	public Response editEventForm(@QueryParam("id") int id) {
@@ -310,18 +301,8 @@ public class Bot extends JFrame implements FormMaterial {
 		if (eventToEdit == null) {
 			return Response.status(404).entity("Event with id: " + id + " not found!").build();
 		} else {
-			String body = editEventAction.buildForm(eventToEdit);
+			String body = Actions.editEventAction.buildForm(eventToEdit);
 			return Response.status(200).entity(htmlPage("Edit event", body)).build();
-		}
-	}
-
-	private static ActionBuilder setTimeoutAction;
-	static {
-		try {
-			setTimeoutAction = new ActionBuilder("setTimeOut")
-					.addParam(Bot.class.getDeclaredField("timeout"), new FormParameterSignature("timeout", number));
-		} catch (NoSuchFieldException e) {
-			throw new RuntimeException(e);
 		}
 	}
 
@@ -354,35 +335,32 @@ public class Bot extends JFrame implements FormMaterial {
 		} else {
 			Parrot parrot = parrots.get(name);
 			return Response.status(200).entity(
-					htmlPage("Edit Parrot " + name, editParrotAction.buildForm(parrot))).build();
-		}
-	}
-
-	private static ActionBuilder editParrotAction;
-	static {
-		try {
-			editParrotAction = new ActionBuilder("editParrot")
-					.addParam(Parrot.class.getDeclaredField("name"), new FormParameterSignature("name", hidden))
-					.addParam(SomethingWithComments.class.getDeclaredField("before"), new FormParameterSignature("before", textarea))
-					.addParam(Phrase.class.getDeclaredField("cases"), new FormParameterSignature("cases", textarea))
-					.addParam(SomethingWithComments.class.getDeclaredField("after"), new FormParameterSignature("after", textarea));
-		} catch (NoSuchFieldException e) {
-			throw new RuntimeException(e);
+					htmlPage("Edit Parrot " + name, Actions.editParrotAction.buildForm(parrot))).build();
 		}
 	}
 
 	@GET
 	@Path("/editParrot")
 	public Response editParrot(@QueryParam("name") String name,
+							   @QueryParam("rename") String rename,
 							   @QueryParam("before") String before,
 							   @QueryParam("cases") String cases,
-							   @QueryParam("after") String after) {
+							   @QueryParam("after") String after,
+							   @QueryParam("color") String color) {
 		if (!parrots.containsKey(name)) {
 			return Response.status(404).entity("Parrot:" + name + " not found").build();
 		} else {
 			Parrot parrot = parrots.get(name);
 			if (parrot.getWhat() instanceof SomethingWithComments) {
 				((SomethingWithComments) parrot.getWhat()).edit(before, cases, after);
+			}
+			if (color != null) {
+				parrot.setColor(color);
+			}
+			if (rename != null && !rename.equals(name)) {
+				parrots.remove(name);
+				parrot.setParrotName(rename);
+				parrots.put(rename, parrot);
 			}
 			return home();
 		}
@@ -412,7 +390,7 @@ public class Bot extends JFrame implements FormMaterial {
 	@Produces(MediaType.TEXT_HTML)
 	@Path("/")
 	public Response home() {
-		TableBuilder table = new TableBuilder(
+		ColoredTable table = new ColoredTable(
 				"Parrot Name",
 				"Edit",
 				"Events",
@@ -421,8 +399,9 @@ public class Bot extends JFrame implements FormMaterial {
 				"Post right now",
 				"Add an event",
 				"Remove the parrot");
+		int parrotNumber = 1;
 		for (Parrot parrot: parrots.values()) {
-			addParrotToTable(table, parrot);
+			addParrotToTable(table, parrot, parrotNumber++);
 		}
 		String body =
 				allEventsTable().buildHtml() + 
@@ -432,7 +411,7 @@ public class Bot extends JFrame implements FormMaterial {
 						"Add custom Parrot",
 						new Parameter<>("name", "CustomParrot" + parrots.size())) + 
 				"<br/><br/>" +
-				setTimeoutAction.buildForm(this);
+				Actions.setTimeoutAction.buildForm(this);
 		if(parrots.isEmpty()) {
 			body = "is empty";
 		}
@@ -440,12 +419,12 @@ public class Bot extends JFrame implements FormMaterial {
 		return Response.status(200).entity(page).build();
 	}
 
-	private void addParrotToTable(TableBuilder table, Parrot parrot) {
+	private void addParrotToTable(ColoredTable table, Parrot parrot, int parrotNumber) {
 		String name = parrot.getParrotName();
 		Parameter nameParameter = new Parameter<>("name", name);
 		table.addRow(
 				parrot.getParrotName(),
-				getPath("editParrotForm", "Edit", 
+				getPath("editParrotForm", "Edit",
 						nameParameter),
 				getPath("events", "Events",
 						nameParameter),
@@ -460,13 +439,12 @@ public class Bot extends JFrame implements FormMaterial {
 				getPath("removeParrot", "Remove",
 						nameParameter)
 		);
+		table.addColor(parrotNumber, 0, parrot.getColorHex());
 	}
 
 	private String timeInfo() {
 		String refreshButton = getPath("", "" + (nextShot - System.currentTimeMillis()) / 1000) + " sec";
-		String timeTillNext = tag("h2").build("Time till next shot: " + refreshButton);
-		String result = timeTillNext;
-		return result;
+		return tag("h2").build("Time till next shot: " + refreshButton);
 	}
 
 	private String getPath(String method, String name, Parameter... parameters) {

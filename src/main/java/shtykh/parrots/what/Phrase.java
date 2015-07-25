@@ -1,6 +1,6 @@
 package shtykh.parrots.what;
 
-import shtykh.util.html.form.FormParameterMaterial;
+import shtykh.util.html.form.material.FormParameterMaterial;
 
 import static shtykh.parrots.what.CSV.fromArray;
 

@@ -1,4 +1,4 @@
-package shtykh.util.html.form;
+package shtykh.util.html.form.param;
 
 /**
  * Created by shtykh on 10/07/15.

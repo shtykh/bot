@@ -6,6 +6,8 @@ import shtykh.parrots.poster.Poster;
 import shtykh.parrots.what.Humidity;
 import shtykh.parrots.when.Daily;
 
+import java.awt.*;
+
 /**
  * Created by shtykh on 25/06/15.
  */
@@ -15,6 +17,6 @@ public class HumidityParrot extends Parrot {
 				new Daily(),
 				new Probably(0.9),
 				poster,
-				"HumidityParrot");
+				"HumidityParrot", Color.blue.brighter().brighter().brighter());
 	}
 }

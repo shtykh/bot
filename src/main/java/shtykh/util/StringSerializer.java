@@ -3,6 +3,7 @@ package shtykh.util;
 import org.apache.commons.lang3.StringEscapeUtils;
 import shtykh.parrots.what.CSV;
 
+import java.awt.*;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -88,6 +89,19 @@ public abstract class StringSerializer<T> {
 			@Override
 			protected String toStringInternal(String string) {
 				return string;
+			}
+		});
+
+		map.put(Color.class, new StringSerializer<Color>() {
+
+			@Override
+			protected Color fromStringInternal(String string) {
+				return Color.decode(string);
+			}
+
+			@Override
+			protected String toStringInternal(Color color) {
+				return String.format("#%06x", color.getRGB() & 0x00FFFFFF);
 			}
 		});
 		

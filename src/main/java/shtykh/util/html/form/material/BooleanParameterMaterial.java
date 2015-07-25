@@ -1,4 +1,6 @@
-package shtykh.util.html.form;
+package shtykh.util.html.form.material;
+
+import shtykh.util.html.form.param.FormParameterType;
 
 /**
  * Created by shtykh on 14/07/15.

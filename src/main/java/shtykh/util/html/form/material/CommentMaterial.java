@@ -1,9 +1,9 @@
-package shtykh.util.html.form;
+package shtykh.util.html.form.material;
 
 import shtykh.util.StringSerializer;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-import static shtykh.util.html.form.FormParameterType.*;
+import static shtykh.util.html.form.param.FormParameterType.*;
 
 /**
  * Created by shtykh on 18/07/15.

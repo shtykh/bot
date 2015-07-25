@@ -5,6 +5,8 @@ import shtykh.parrots.onlyif.LocationIsChanged;
 import shtykh.parrots.poster.Poster;
 import shtykh.parrots.when.OnceIn;
 
+import java.awt.*;
+
 /**
  * Created by shtykh on 01/04/15.
  */
@@ -14,7 +16,7 @@ public class LocationParrot extends Parrot {
 				new OnceIn(2, 3),
 				locationIsChanged,
 				poster,
-				"LocationParrot");
+				"LocationParrot", Color.RED.brighter());
 		locationIsChanged.setPoster(poster);
 	}
 

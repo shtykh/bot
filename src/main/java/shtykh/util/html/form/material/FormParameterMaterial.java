@@ -1,6 +1,9 @@
-package shtykh.util.html.form;
+package shtykh.util.html.form.material;
 
 import shtykh.util.StringSerializer;
+import shtykh.util.html.form.param.FormParameter;
+import shtykh.util.html.form.param.FormParameterSignature;
+import shtykh.util.html.form.param.FormParameterType;
 
 import java.util.Collections;
 import java.util.Set;

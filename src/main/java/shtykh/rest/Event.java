@@ -3,10 +3,10 @@ package shtykh.rest;
 import org.json.JSONException;
 import shtykh.parrots.Parrot;
 import shtykh.tweets.TwitterAPIException;
-import shtykh.util.html.form.BooleanParameterMaterial;
-import shtykh.util.html.form.CommentMaterial;
-import shtykh.util.html.form.FormMaterial;
-import shtykh.util.html.form.FormParameterMaterial;
+import shtykh.util.html.form.material.BooleanParameterMaterial;
+import shtykh.util.html.form.material.CommentMaterial;
+import shtykh.util.html.form.material.FormMaterial;
+import shtykh.util.html.form.material.FormParameterMaterial;
 
 import java.io.IOException;
 import java.util.Date;

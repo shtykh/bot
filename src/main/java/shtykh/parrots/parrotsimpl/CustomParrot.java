@@ -6,6 +6,8 @@ import shtykh.parrots.poster.Poster;
 import shtykh.parrots.what.Stringer;
 import shtykh.parrots.when.Longer;
 
+import java.awt.*;
+
 /**
  * Created by shtykh on 05/07/15.
  */
@@ -15,6 +17,6 @@ public class CustomParrot extends Parrot {
 						Booleaner ifWhat, 
 						Poster poster, 
 						String name) {
-		super(what, when, ifWhat, poster, name);
+		super(what, when, ifWhat, poster, name, Color.LIGHT_GRAY);
 	}
 }

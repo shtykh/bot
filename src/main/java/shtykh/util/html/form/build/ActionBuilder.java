@@ -1,9 +1,14 @@
-package shtykh.util.html.form;
+package shtykh.util.html.form.build;
+
+import shtykh.util.html.form.material.FormMaterial;
+import shtykh.util.html.form.material.FormParameterMaterial;
+import shtykh.util.html.form.param.FormParameter;
+import shtykh.util.html.form.param.FormParameterSignature;
 
 import java.lang.reflect.Field;
 import java.util.*;
 
-import static shtykh.util.html.form.FormParameterType.comment;
+import static shtykh.util.html.form.param.FormParameterType.comment;
 
 /**
  * Created by shtykh on 12/07/15.
@@ -22,7 +27,6 @@ public class ActionBuilder {
 	public ActionBuilder addParam(Field field, 
 								  FormParameterSignature signature) {
 		signature.setIndex(signaturesNumber++);
-		System.out.println(signature.getName() + " " + signature.getIndex());
 		signatureMap.put(field, signature);
 		return this;
 	}
@@ -34,10 +38,11 @@ public class ActionBuilder {
 			FormBuilder builder = new FormBuilder(action);
 			for (int i = 0; i < signaturesNumber; i++) {
 				FormParameter formParameter = parameters.get(i);
-				if (formParameter == null) {
-					throw new RuntimeException(action + " error: " + i + "th parameter value wasn't found");
+				if (null != formParameter) {
+					builder.addMember(formParameter);
+				} else {
+					//throw new RuntimeException(action + " error: " + i + "th parameter value wasn't found");
 				}
-				builder.addMember(formParameter);
 			}
 			return builder.build();
 		}
@@ -67,7 +72,6 @@ public class ActionBuilder {
 				addParameters(parameters, get(field, formMaterial, FormMaterial.class), seen);
 			}else if (FormParameterMaterial.class.isAssignableFrom(field.getType())) {
 				FormParameterSignature sign = getSignFor(field);
-				System.out.println("Parameter added: " + sign.getIndex() + getParameter(field, sign, formMaterial));
 				parameters.put(sign.getIndex(), getParameter(field, sign, formMaterial));
 			}
 		}

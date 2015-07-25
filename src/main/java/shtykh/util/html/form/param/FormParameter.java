@@ -1,11 +1,12 @@
-package shtykh.util.html.form;
+package shtykh.util.html.form.param;
 
+import shtykh.util.html.form.material.FormParameterMaterial;
 import shtykh.util.html.param.Parameter;
 
 /**
  * Created by shtykh on 10/07/15.
  */
-class FormParameter<T> extends Parameter<T> {
+public class FormParameter<T> extends Parameter<T> {
 	private FormParameterSignature sign;
 	private FormParameterMaterial<T> material;
 
