@@ -180,8 +180,7 @@ public class Util {
 			BufferedReader bfr = new BufferedReader(new InputStreamReader(stream));
 			String line = "";
 			while((line = bfr.readLine()) != null) {
-// display each output line form python script
-				log.info(line);
+				info(line);
 			}
 			return this;
 		}

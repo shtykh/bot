@@ -128,15 +128,18 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 		URI uriText;
 		URI uriBuild;
 		URI uriAuthors;
-		String outFormat;
 		try {
 			questionsTable = getQuestionTable();
 			uriList = htmlHelper.uriBuilder("/bot/rest/pack/").build();
 			Parameter<String> parameter = new Parameter<>("index", String.valueOf(size()));
 			uriNew = htmlHelper.uriBuilder("/bot/rest/pack/editForm", parameter).build();
 			uriText = htmlHelper.uriBuilder("/bot/rest/pack/text").build();
-			outFormat = readProperty("quedit.properties", "outFormat");
-			uriBuild = htmlHelper.uriBuilder("/bot/rest/pack/build").addParameter("outFormat", outFormat).build();
+			String outFormat = readProperty("quedit.properties", "outFormat");
+			Boolean	debug = parseBoolean(readProperty("quedit.properties", "debug"));
+			uriBuild = htmlHelper.uriBuilder("/bot/rest/pack/build")
+					.addParameter("outFormat", outFormat)
+					.addParameter("debug", debug.toString())
+					.build();
 			uriAuthors = htmlHelper.uriBuilder("/bot/rest/authors/list").build();
 
 		} catch (URISyntaxException | FileNotFoundException e) {
@@ -379,8 +382,7 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 
 	@GET
 	@Path("/build")
-	public Response build(@QueryParam("outFormat") String outFormat) throws IOException {
-		boolean	debug = parseBoolean(readProperty("quedit.properties", "debug"));
+	public Response build(@QueryParam("outFormat") String outFormat, @QueryParam("debug") boolean debug) throws IOException {
 		StringLogger logs = new StringLogger(log, debug);
 		String text4s = to4s();
 		logs.debug("text generated in 4s");
@@ -415,7 +417,7 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 		pack.htmlHelper = new HtmlHelper();
 		pack.authors = new AuthorsCatalogue();
 		//System.out.println(pack.home().getEntity());
-		System.out.println(pack.build(null).getEntity());
+		System.out.println(pack.build("docx", true).getEntity());
 		//System.out.println(pack.editForm(0).getEntity());
 		//System.out.println(pack.editAuthor(0, "Дмитрий Некрылов (Киев)"));
 	}
