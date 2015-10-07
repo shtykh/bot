@@ -2,6 +2,8 @@ package shtykh.parrots.what;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Collection;
+
 import static shtykh.util.Util.random;
 
 /**
@@ -12,6 +14,10 @@ public class CSV {
 
 	public CSV(String... array) {
 		setArray(array);
+	}
+
+	public CSV(Collection<String> strings) {
+		setStrings(strings);
 	}
 
 	public CSV setArray(String... array) {
@@ -26,9 +32,22 @@ public class CSV {
 		}
 		return this;
 	}
+	
+	public CSV setStrings(Iterable<String> array) {
+		StringBuilder sb = new StringBuilder();
+		for (String s : array) {
+			sb.append(s)
+					.append("\n");
+		}
+		int lastCommaIndex = sb.lastIndexOf("\n");
+		if (lastCommaIndex > 0) {
+			value = sb.substring(0, sb.lastIndexOf("\n"));
+		}
+		return this;
+	}
 
 	public String[] asArray() {
-		return value.split("\n");
+		return value==null ? new String[]{} : value.split("\n");
 	}
 
 	public static CSV fromArray(String... array) {

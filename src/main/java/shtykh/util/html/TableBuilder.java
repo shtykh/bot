@@ -51,6 +51,11 @@ public class TableBuilder {
 		return sb.toString();
 	}
 
+	@Override
+	public String toString() {
+		return buildHtml();
+	}
+
 	private String contents(List<String[]> contents) {
 		StringBuilder sb = new StringBuilder();
 		int rowIndex = 0;

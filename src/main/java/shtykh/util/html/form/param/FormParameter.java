@@ -28,4 +28,8 @@ public class FormParameter<T> extends Parameter<T> {
 	public FormParameterMaterial<T> getMaterial(){
 		return material;
 	}
+
+	public String getLabel() {
+		return sign.getLabel();
+	}
 }

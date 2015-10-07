@@ -5,11 +5,17 @@ package shtykh.util.html.form.param;
  */
 public class FormParameterSignature implements Comparable<FormParameterSignature>{
 	private final String name;
+	private final String label;
 	private final FormParameterType type;
 	private int index;
 
 	public FormParameterSignature(String name, FormParameterType type) {
+		this(name, name, type);
+	}
+
+	public FormParameterSignature(String name, String label, FormParameterType type) {
 		this.name = name;
+		this.label = label;
 		this.type = type;
 	}
 
@@ -41,5 +47,9 @@ public class FormParameterSignature implements Comparable<FormParameterSignature
 
 	public void setIndex(int index) {
 		this.index = index;
+	}
+
+	public String getLabel() {
+		return label;
 	}
 }

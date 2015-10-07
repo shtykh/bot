@@ -7,7 +7,7 @@
     <groupId>shtykh</groupId>
     <artifactId>bot</artifactId>
 	<packaging>war</packaging>
-	<version>1.1-SNAPSHOT</version>
+	<version>1.2-SNAPSHOT</version>
 	<name>RESTfulExample Maven Webapp</name>
 
 	<repositories>
@@ -84,6 +84,11 @@
             <groupId>shtykh</groupId>
             <artifactId>cashtykh</artifactId>
             <version>1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-asl</artifactId>
+            <version>1.8.5</version>
         </dependency>
     </dependencies>
 

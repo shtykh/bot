@@ -1,5 +1,6 @@
 package shtykh.util.html.form.build;
 
+import shtykh.parrots.what.CSV;
 import shtykh.util.html.TagBuilder;
 import shtykh.util.html.form.material.BooleanParameterMaterial;
 import shtykh.util.html.form.param.FormParameter;
@@ -39,10 +40,13 @@ public class FormBuilder {
 				break;
 			case textarea:
 				form = textarea(parameter);
-			break;
+				break;
+			case select:
+				form = selectForm(parameter);
+				break;
 			default:
 				form = input(parameter);
-			break;
+				break;
 		}
 		return getLabel(parameter) + form;
 	}
@@ -59,8 +63,18 @@ public class FormBuilder {
 	private String textarea(FormParameter parameter) {
 		return "<br>" + tag("textarea").params(
 				new Parameter<>("rows", "4"),
-				new Parameter<>("cols", "50"),
+				new Parameter<>("cols", "150"),
 				new Parameter<>("name", parameter.getName())).build(parameter.getValueString());
+	}
+
+	private String selectForm(FormParameter<CSV> parameter) {
+		StringBuilder options = new StringBuilder();
+		for (String s : parameter.getMaterial().get().asArray()) {
+			options.append(tag("option").params(new Parameter<>("value", s)).build(s));
+		}
+		return tag("select").params(
+				new Parameter<>("name", parameter.getName()))
+				.build(options);
 	}
 
 	private String checkbox(FormParameter<Boolean> parameter) {
@@ -114,9 +128,9 @@ public class FormBuilder {
 			case hidden:
 				return "";
 			case checkbox:
-				return member.getName() + " : set \"true\"";
+				return member.getLabel() + " : set \"true\"";
 			default:
-				return member.getName() + " : ";
+				return member.getLabel() + " : ";
 		}
 	}
 }

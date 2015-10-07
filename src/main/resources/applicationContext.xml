@@ -10,4 +10,6 @@
 
     <bean id="poster" class="shtykh.parrots.poster.TwitterPoster"/>
     <bean id="bot" class="shtykh.rest.Bot" init-method="init"></bean>
+    <bean id="htmlHelper" class="shtykh.util.html.HtmlHelper"></bean>
+    <bean id="authors" class="shtykh.rest.AuthorsCatalogue"></bean>
 </beans>

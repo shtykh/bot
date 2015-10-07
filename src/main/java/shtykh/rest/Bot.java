@@ -14,6 +14,7 @@ import shtykh.parrots.what.Phrase;
 import shtykh.parrots.what.SomethingWithComments;
 import shtykh.parrots.what.Sweets;
 import shtykh.parrots.when.Daily;
+import shtykh.parrots.parrotsimpl.WisdomParrot;
 import shtykh.tweets.TwitterAPIException;
 import shtykh.ui.UiUtil;
 import shtykh.util.html.ColoredTable;
@@ -53,14 +54,12 @@ public class Bot extends JFrame implements FormMaterial {
 
 	@Autowired
 	private Poster poster;
+	@Autowired
 	private HtmlHelper htmlHelper;
 	
-	private static final String HOST = "localhost";
-	private static final int PORT = 8080;
 	private FormParameterMaterial<Long> timeout;
 	private long nextShot = 0;
 	public void init() throws HeadlessException, IOException, JSONException, TwitterAPIException {
-		htmlHelper = new HtmlHelper(HOST, PORT);
 		ArrayList<Parrot> parrotsList = new ArrayList<>();
 		parrots = new HashMap<>();
 		events = new ArrayList<>();
@@ -71,6 +70,7 @@ public class Bot extends JFrame implements FormMaterial {
 		parrotsList.add(new LocationParrot(poster, new LocationIsChanged("Москва")));
 		parrotsList.add(new SweetsParrot(poster, new Sweets()));
 		parrotsList.add(new HumidityParrot(poster));
+		parrotsList.add(new WisdomParrot(poster));
 
 		log.info("Starting parrots");
 		for (Parrot parrot : parrotsList) {

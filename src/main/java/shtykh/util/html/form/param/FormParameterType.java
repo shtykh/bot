@@ -28,7 +28,8 @@ public enum FormParameterType {
 	month,
 	week,
 	datetime_local,
-	comment;
+	comment,
+	select;
 
 	@Override
 	public String toString() {

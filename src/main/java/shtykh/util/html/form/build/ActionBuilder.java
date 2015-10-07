@@ -1,9 +1,12 @@
 package shtykh.util.html.form.build;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import shtykh.util.html.form.material.FormMaterial;
 import shtykh.util.html.form.material.FormParameterMaterial;
 import shtykh.util.html.form.param.FormParameter;
 import shtykh.util.html.form.param.FormParameterSignature;
+import shtykh.util.html.form.param.FormParameterType;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -15,13 +18,13 @@ import static shtykh.util.html.form.param.FormParameterType.comment;
  */
 public class ActionBuilder {
 	private final String action;
-	private final Map<Field, FormParameterSignature> signatureMap;
+	private final Multimap<Field, FormParameterSignature> signatureMap;
 	private int signaturesNumber;
 
 	public ActionBuilder(String action) {
 		this.action = action;
 		this.signaturesNumber = 0;
-		signatureMap = new HashMap<>();
+		signatureMap = ArrayListMultimap.create();
 	}
 	
 	public ActionBuilder addParam(Field field, 
@@ -29,6 +32,30 @@ public class ActionBuilder {
 		signature.setIndex(signaturesNumber++);
 		signatureMap.put(field, signature);
 		return this;
+	}
+
+
+	public ActionBuilder addParam(Class<? extends FormMaterial> clazz,
+								  String fieldName,
+								  String label,
+								  FormParameterType type) throws NoSuchFieldException {
+		return addParam(clazz, fieldName, label, fieldName, type);
+	}
+
+	public ActionBuilder addParam(Class<? extends FormMaterial> clazz,
+								  String fieldName,
+							  FormParameterType type) throws NoSuchFieldException {
+		return addParam(clazz, fieldName, fieldName, fieldName, type);
+	}
+	
+	public ActionBuilder addParam(Class<? extends FormMaterial> clazz,
+								  String fieldName,
+								  String label,
+								  String parameterName,
+								  FormParameterType type) throws NoSuchFieldException {
+		Field field = clazz.getDeclaredField(fieldName);
+		FormParameterSignature formParameterSignature = new FormParameterSignature(parameterName, label, type);
+		return addParam(field, formParameterSignature);
 	}
 	
 	public String buildForm(FormMaterial formMaterial) {
@@ -51,10 +78,10 @@ public class ActionBuilder {
 	private void addParameters(Map<Integer, FormParameter> parameters, 
 							   FormMaterial formMaterial, 
 							   List<FormMaterial> seen) {
-		if (!seen.contains(formMaterial)) {
-			seen.add(formMaterial);
-		} else {
+		if (seen.contains(formMaterial) || formMaterial == null) {
 			return;
+		} else {
+			seen.add(formMaterial);
 		}
 		Class clazz = formMaterial.getClass();
 		while(FormMaterial.class.isAssignableFrom(clazz)) {
@@ -71,8 +98,9 @@ public class ActionBuilder {
 			if (FormMaterial.class.isAssignableFrom(field.getType())) {
 				addParameters(parameters, get(field, formMaterial, FormMaterial.class), seen);
 			}else if (FormParameterMaterial.class.isAssignableFrom(field.getType())) {
-				FormParameterSignature sign = getSignFor(field);
-				parameters.put(sign.getIndex(), getParameter(field, sign, formMaterial));
+				for(FormParameterSignature sign : getSignFor(field)) {
+					parameters.put(sign.getIndex(), getParameter(field, sign, formMaterial));
+				}
 			}
 		}
 	}
@@ -93,12 +121,13 @@ public class ActionBuilder {
 		}
 	}
 
-	private FormParameterSignature getSignFor(Field field) {
-		FormParameterSignature sign = signatureMap.get(field);
-		if (sign == null) {
-			sign = new FormParameterSignature(field.getName(), comment);
+	private Collection<FormParameterSignature> getSignFor(Field field) {
+		Collection<FormParameterSignature> signs = signatureMap.get(field);
+		if (signs == null) {
+			FormParameterSignature sign = new FormParameterSignature(field.getName(), comment);
 			sign.setIndex(signaturesNumber++);
+			return Arrays.asList(sign);
 		}
-		return sign;
+		return signs;
 	}
 }

@@ -16,9 +16,16 @@ public class HtmlHelper {
 	private final String host;
 	private final int port;
 
+	private static final String HOST = "localhost";
+	private static final int PORT = 8080;
+
 	public HtmlHelper(String host, int port) {
 		this.host = host;
 		this.port = port;
+	}
+
+	public HtmlHelper() {
+		this(HOST, PORT);
 	}
 
 	public URIBuilder uriBuilder(String postfix, Parameter... parameters) throws URISyntaxException {
