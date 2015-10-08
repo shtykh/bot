@@ -1,6 +1,6 @@
 package shtykh.quedit.question;
 
-import shtykh.parrots.what.CSV;
+import shtykh.util.CSV;
 import shtykh.quedit._4s.FormParameterMaterial4s;
 import shtykh.quedit._4s.Meta4s;
 import shtykh.quedit._4s._4Sable;

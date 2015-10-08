@@ -1,6 +1,7 @@
 package shtykh.util.html.form.build;
 
-import shtykh.parrots.what.CSV;
+import com.sun.research.ws.wadl.HTTPMethods;
+import shtykh.util.CSV;
 import shtykh.util.html.TagBuilder;
 import shtykh.util.html.form.material.BooleanParameterMaterial;
 import shtykh.util.html.form.param.FormParameter;
@@ -97,8 +98,19 @@ public class FormBuilder {
 						new Parameter<>("value", value)
 				).toString();
 	}
+	
+	public static String buildUploadForm(String action) {
+		return "\t<form action=\"" + action + "\" method=\"post\" enctype=\"multipart/form-data\">\n" +
+				"\n" +
+				"\t   <p>\n" +
+				"\t\tSelect a file : <input type=\"file\" name=\"file\" size=\"50\" />\n" +
+				"\t   </p>\n" +
+				"\n" +
+				"\t   <input type=\"submit\" value=\"Upload It\" />\n" +
+				"\t</form>";
+	}
 
-	public String build(){
+	public String build(HTTPMethods method){
 		StringBuilder sb = new StringBuilder();
 		sb.append(tag("legend").build("Form for " + action));
 		sb.append(input(reset, "Reset"));
@@ -118,7 +130,7 @@ public class FormBuilder {
 		String fieldset = tag("fieldset").build(sb.toString());
 		return tag("form")
 				.params(
-						new Parameter<>("method", "get"),
+						new Parameter<>("method", method.value()),
 						new Parameter<>("action", action))
 				.build(fieldset);
 	}

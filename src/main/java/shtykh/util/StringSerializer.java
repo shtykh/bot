@@ -1,7 +1,6 @@
 package shtykh.util;
 
 import org.apache.commons.lang3.StringEscapeUtils;
-import shtykh.parrots.what.CSV;
 
 import java.awt.*;
 import java.text.DateFormat;

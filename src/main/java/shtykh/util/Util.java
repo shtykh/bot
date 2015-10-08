@@ -1,10 +1,7 @@
 package shtykh.util;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import shtykh.parrots.what.Phrase;
-import shtykh.parrots.what.SomethingWithComments;
 
 import java.io.*;
 import java.text.DateFormat;
@@ -16,29 +13,7 @@ import java.util.*;
  */
 public class Util {
 	public static Random random = new Random();
-	
 
-	public static void main(String[] args) {
-		List<String> lines = readLines("/Users/shtykh/bot/src/main/java/shtykh/util/input");
-		StringBuilder first = new StringBuilder();
-		StringBuilder second = new StringBuilder();
-		for (String line : lines) {
-			String[] halves = StringUtils.split(line, "—");
-			if (halves.length == 2) {
-				if (StringUtils.containsAny(line, "?,")) {
-					continue;
-				}
-				first.append(halves[0] + "—").append("\n");
-				second.append(halves[1]).append("\n");
-			}
-		}
-		SomethingWithComments wisdomStringer = new Phrase();
-		wisdomStringer.edit(first.toString(), second.toString(), " #пословицадня");
-		for (int i = 0; i < 30; i++) {
-			System.out.println(wisdomStringer.nextString());
-		}
-	}
-	
 	public static List<String> readLines(String filePath) {
 		try(BufferedReader br = new BufferedReader(new FileReader(filePath))) {
 			List<String> lines = new ArrayList<>();
@@ -183,6 +158,22 @@ public class Util {
 				info(line);
 			}
 			return this;
+		}
+	}
+
+	public static void saveFile(InputStream uploadedInputStream,
+								String serverLocation) {
+		try {
+			OutputStream outpuStream = new FileOutputStream(new File(serverLocation));
+			int read = 0;
+			byte[] bytes = new byte[1024];
+			while ((read = uploadedInputStream.read(bytes)) != -1) {
+				outpuStream.write(bytes, 0, read);
+			}
+			outpuStream.flush();
+			outpuStream.close();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 }

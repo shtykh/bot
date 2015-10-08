@@ -1,4 +1,4 @@
-package shtykh.parrots.what;
+package shtykh.util;
 
 import org.apache.commons.lang3.StringUtils;
 

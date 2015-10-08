@@ -3,9 +3,11 @@ package shtykh.rest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import shtykh.quedit.author.SinglePerson;
+import shtykh.util.Util;
 import shtykh.util.catalogue.MapCatalogue;
 import shtykh.util.html.HtmlHelper;
 import shtykh.util.html.TableBuilder;
+import shtykh.util.html.UriGenerator;
 import shtykh.util.html.form.build.ActionBuilder;
 import shtykh.util.html.param.Parameter;
 
@@ -13,6 +15,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
+import java.io.FileNotFoundException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -26,13 +29,13 @@ import static shtykh.util.html.form.param.FormParameterType.text;
 
 @Component
 @Path("/authors")
-public class AuthorsCatalogue extends MapCatalogue<SinglePerson> {
-	
+public class AuthorsCatalogue extends MapCatalogue<SinglePerson> implements UriGenerator {
+
 	@Autowired
 	private HtmlHelper htmlHelper;
 	
-	public AuthorsCatalogue() {
-		super(SinglePerson.class, "authors");
+	public AuthorsCatalogue() throws FileNotFoundException {
+		super(SinglePerson.class, Util.readProperty("quedit.properties", "authors"));
 		refresh();
 	}
 
@@ -46,8 +49,8 @@ public class AuthorsCatalogue extends MapCatalogue<SinglePerson> {
 		URI uriNew;
 		try {
 			table = getPersonTable();
-			uriList = htmlHelper.uriBuilder("/bot/rest/authors/list").build();
-			uriNew = htmlHelper.uriBuilder("/bot/rest/authors/editform").build();
+			uriList = uri("list");
+			uriNew = uri("editform");
 		} catch (URISyntaxException e) {
 			return Response.status(500).entity(e.toString()).build();
 		}
@@ -58,9 +61,9 @@ public class AuthorsCatalogue extends MapCatalogue<SinglePerson> {
 
 	private TableBuilder getPersonTable() throws URISyntaxException {
 		TableBuilder table = new TableBuilder("Персонаж", "Редактировать", "Удалить");
-		for (String name : getKeys()) {
-			URI uriEdit = htmlHelper.uriBuilder("/bot/rest/authors/editform", new Parameter<>("name", name)).build();
-			URI uriRemove = htmlHelper.uriBuilder("/bot/rest/authors/remove", new Parameter<>("name", name)).build();
+		for (String name : keys()) {
+			URI uriEdit = uri("editform", new Parameter<>("name", name));
+			URI uriRemove = uri("remove", new Parameter<>("name", name));
 			table.addRow(name, href(uriEdit, "Редактировать"), href(uriRemove, "Удалить"));
 		}
 		return table;
@@ -91,7 +94,7 @@ public class AuthorsCatalogue extends MapCatalogue<SinglePerson> {
 		return list();
 	}
 
-	private static ActionBuilder editPersonAction = new ActionBuilder("edit");
+	private static ActionBuilder editPersonAction = new ActionBuilder("/quedit/rest/authors/edit");
 	static {
 		try {
 			editPersonAction.addParam(SinglePerson.class, "firstName", "Имя", text)
@@ -102,7 +105,7 @@ public class AuthorsCatalogue extends MapCatalogue<SinglePerson> {
 		}
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws FileNotFoundException {
 		AuthorsCatalogue ac = new AuthorsCatalogue();
 		ac.htmlHelper = new HtmlHelper();
 		System.out.println(ac.list().getEntity());
@@ -112,5 +115,15 @@ public class AuthorsCatalogue extends MapCatalogue<SinglePerson> {
 	@Override
 	protected String getFileName(SinglePerson p) {
 		return p.toString();
+	}
+
+	@Override
+	public String base() {
+		return "/quedit/rest/authors";
+	}
+
+	@Override
+	public HtmlHelper htmlHelper() {
+		return htmlHelper;
 	}
 }

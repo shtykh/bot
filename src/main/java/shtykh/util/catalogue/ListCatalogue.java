@@ -1,6 +1,6 @@
 package shtykh.util.catalogue;
 
-import shtykh.parrots.what.CSV;
+import shtykh.util.CSV;
 import shtykh.quedit.numerator.NaturalNumerator;
 import shtykh.quedit.numerator.Numerator;
 import shtykh.util.Jsonable;
@@ -17,12 +17,12 @@ import java.util.List;
  */
 public abstract class ListCatalogue<T extends Jsonable> extends Catalogue<Integer, T> {
 	private List<T> list;
-	private Numerator numerator;
 
+	private Numerator numerator;
 	public ListCatalogue(Class<T> clazz, String propertyName) {
 		super(clazz, propertyName);
 	}
-	
+
 	protected void refreshKeys() {
 		keys.set(numerator.firstNumbers(size()));
 	}
@@ -82,7 +82,7 @@ public abstract class ListCatalogue<T extends Jsonable> extends Catalogue<Intege
 		return list.indexOf(p);
 	}
 
-	public List<T> getList() {
+	protected List<T> getList() {
 		return list;
 	}
 

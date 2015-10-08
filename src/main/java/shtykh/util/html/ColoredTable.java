@@ -40,7 +40,7 @@ public class ColoredTable extends TableBuilder {
 
 	@Override
 	public String getColor(int row, int column) {
-		Map<Integer, String> rowColors = bgColors.get(row);
+		Map<Integer, String> rowColors = bgColors == null ? null : bgColors.get(row);
 		return rowColors == null ? null : rowColors.get(column);
 	}
 }

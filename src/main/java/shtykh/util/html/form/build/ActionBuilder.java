@@ -2,6 +2,7 @@ package shtykh.util.html.form.build;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import com.sun.research.ws.wadl.HTTPMethods;
 import shtykh.util.html.form.material.FormMaterial;
 import shtykh.util.html.form.material.FormParameterMaterial;
 import shtykh.util.html.form.param.FormParameter;
@@ -20,14 +21,20 @@ public class ActionBuilder {
 	private final String action;
 	private final Multimap<Field, FormParameterSignature> signatureMap;
 	private int signaturesNumber;
+	private final HTTPMethods method;
 
 	public ActionBuilder(String action) {
+		this(action, HTTPMethods.GET);
+	}
+
+	public ActionBuilder(String action, HTTPMethods method) {
 		this.action = action;
+		this.method = method;
 		this.signaturesNumber = 0;
 		signatureMap = ArrayListMultimap.create();
 	}
-	
-	public ActionBuilder addParam(Field field, 
+
+	public ActionBuilder addParam(Field field,
 								  FormParameterSignature signature) {
 		signature.setIndex(signaturesNumber++);
 		signatureMap.put(field, signature);
@@ -47,7 +54,7 @@ public class ActionBuilder {
 							  FormParameterType type) throws NoSuchFieldException {
 		return addParam(clazz, fieldName, fieldName, fieldName, type);
 	}
-	
+
 	public ActionBuilder addParam(Class<? extends FormMaterial> clazz,
 								  String fieldName,
 								  String label,
@@ -57,7 +64,7 @@ public class ActionBuilder {
 		FormParameterSignature formParameterSignature = new FormParameterSignature(parameterName, label, type);
 		return addParam(field, formParameterSignature);
 	}
-	
+
 	public String buildForm(FormMaterial formMaterial) {
 		synchronized (formMaterial) {
 			Map<Integer, FormParameter> parameters = new TreeMap<>();
@@ -71,7 +78,7 @@ public class ActionBuilder {
 					//throw new RuntimeException(action + " error: " + i + "th parameter value wasn't found");
 				}
 			}
-			return builder.build();
+			return builder.build(this.method);
 		}
 	}
 

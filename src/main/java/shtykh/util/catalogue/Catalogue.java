@@ -1,6 +1,6 @@
 package shtykh.util.catalogue;
 
-import shtykh.parrots.what.CSV;
+import shtykh.util.CSV;
 import shtykh.util.Jsonable;
 import shtykh.util.html.form.material.FormMaterial;
 import shtykh.util.html.form.material.FormParameterMaterial;
@@ -9,54 +9,42 @@ import java.io.File;
 
 import static shtykh.util.Jsonable.fromJson;
 import static shtykh.util.Util.read;
-import static shtykh.util.Util.readProperty;
 
 /**
  * Created by shtykh on 02/10/15.
  */
-public abstract class Catalogue<K,T extends Jsonable> implements FormMaterial {
+public abstract class Catalogue<K,T extends Jsonable> extends FolderKeaper implements FormMaterial {
 	private final Class<T> clazz;
-	protected File folder;
-	private final String propertyName;
 	protected FormParameterMaterial<CSV> keys = new FormParameterMaterial<>(new CSV(""), CSV.class);
 	
 
-	public Catalogue(Class<T> clazz, String propertyName) {
+	public Catalogue(Class<T> clazz, String fileName) {
+		super(fileName);
 		this.clazz = clazz;
-		this.propertyName = propertyName;
-		initFolder();
 		initFields();
 		refresh();
 	}
 
 	protected abstract void initFields();
 
-	private void initFolder() {
-		try {
-			String filename = readProperty("quedit.properties", propertyName);
-			folder = new File(filename);
-			if (!folder.exists()) {
-				folder.mkdirs();
-			} else if (!folder.isDirectory()) {
-				throw new Exception(filename + " must be a directory!");
-			}
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	protected void refresh() {
-		clear();
-		for(File file: folder.listFiles()) {
-			if (!file.isDirectory() && ! file.getName().startsWith(".")) {
-				T p = fromJson(read(file), clazz);
-				add(p);
-			}
-		}
+	@Override
+	public void refresh() {
+		super.refresh();
 		refreshKeys();
 	}
 
-	public String[] getKeys() {
+	@Override
+	public void refreshFile(File file) {
+		T p = fromJson(read(file), clazz);
+		add(p);
+	}
+
+	@Override
+	public boolean isGood(File file) {
+		return !file.isDirectory() && ! file.getName().startsWith(".");
+	}
+
+	public String[] keys() {
 		refresh();
 		return keys.get().asArray();
 	}

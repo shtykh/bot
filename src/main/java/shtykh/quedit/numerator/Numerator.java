@@ -1,6 +1,6 @@
 package shtykh.quedit.numerator;
 
-import shtykh.parrots.what.CSV;
+import shtykh.util.CSV;
 
 import java.util.ArrayList;
 import java.util.Collection;

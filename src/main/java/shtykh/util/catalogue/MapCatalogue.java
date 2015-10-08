@@ -1,6 +1,6 @@
 package shtykh.util.catalogue;
 
-import shtykh.parrots.what.CSV;
+import shtykh.util.CSV;
 import shtykh.util.Jsonable;
 import shtykh.util.Util;
 
