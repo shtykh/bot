@@ -136,7 +136,7 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 			uriText = htmlHelper.uriBuilder("/bot/rest/pack/text").build();
 			String outFormat = readProperty("quedit.properties", "outFormat");
 			Boolean	debug = parseBoolean(readProperty("quedit.properties", "debug"));
-			uriBuild = htmlHelper.uriBuilder("/bot/rest/pack/build")
+			uriBuild = htmlHelper.uriBuilder("/bot/rest/pack/compose")
 					.addParameter("outFormat", outFormat)
 					.addParameter("debug", debug.toString())
 					.build();
@@ -381,8 +381,8 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 	}
 
 	@GET
-	@Path("/build")
-	public Response build(@QueryParam("outFormat") String outFormat, @QueryParam("debug") boolean debug) throws IOException {
+	@Path("/compose")
+	public Response compose(@QueryParam("outFormat") String outFormat, @QueryParam("debug") boolean debug) throws IOException {
 		StringLogger logs = new StringLogger(log, debug);
 		String text4s = to4s();
 		logs.debug("text generated in 4s");
@@ -393,15 +393,47 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 		String name4sFile = timestampFolder.getAbsoluteFile() + "/4s.4s";
 		write(new File(name4sFile), text4s);
 		logs.debug("4s was written to " + name4sFile);
-		File template = copyFileToDir(readProperty("quedit.properties", "templatedocx"), timestampFolder);
-		logs.debug(template + " was created");
-		String[] cmd = chgkComposeCmd(name4sFile, outFormat, "--nospoilers");
+		//File template = copyFileToDir(readProperty("quedit.properties", "templatedocx"), timestampFolder);
+		//logs.debug(template + " was created");
+		String[] cmd = chgkComposeCmd("compose", name4sFile, outFormat, "--nospoilers");
 		if (call(logs, cmd) == 0) {
 			logs.info("Файл формата " + outFormat + " успешно создан в папке " + timestampFolder);
+			if (outFormat.equals("docx")) {
+				String path = getPath(timestampFolder, outFormat);
+				try {
+					URI downloadHref = htmlHelper.uriBuilder("/bot/rest/pack/download/docx", new Parameter<>("path", path)).build();
+					logs.info(href(downloadHref, "Скачать"));
+				} catch (URISyntaxException e) {
+					logs.error(e.getMessage());
+				}
+			}
 		}
-		template.delete();
-		logs.debug(template + " was deleted");
+		//template.delete();
+		//logs.debug(template + " was deleted");
 		return Response.ok(htmlPage("Выгрузка", logs.toString().replace("\n", "<br>"))).build();
+	}
+
+	private String getPath(File folder, String extension) {
+		if (folder == null || !folder.isDirectory()) {
+			return null;
+		} else {
+			for (File file : folder.listFiles()) {
+				if (file.getName().endsWith(extension)) {
+					return file.getAbsolutePath();
+				}
+			}
+			return null;
+		}
+	}
+
+	@GET
+	@Path("/download/docx")
+	@Produces("application/msword")
+	public Response downloadDocFile(@QueryParam("path") String path) {
+		File file = new File(path);
+		ResponseBuilder responseBuilder = Response.ok(file);
+		responseBuilder.header("Content-Disposition", "attachment; filename=\""+ name.get() + ".docx\"");
+		return responseBuilder.build();
 	}
 
 	public String getName() {
@@ -417,7 +449,7 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 		pack.htmlHelper = new HtmlHelper();
 		pack.authors = new AuthorsCatalogue();
 		//System.out.println(pack.home().getEntity());
-		System.out.println(pack.build("docx", true).getEntity());
+		System.out.println(pack.compose("docx", true).getEntity());
 		//System.out.println(pack.editForm(0).getEntity());
 		//System.out.println(pack.editAuthor(0, "Дмитрий Некрылов (Киев)"));
 	}
@@ -425,7 +457,7 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 	private static String[] chgkComposeCmd(String... parameters) throws FileNotFoundException {
 		String[] cmd = new String[parameters.length + 2];
 		cmd[0] = readProperty("quedit.properties", "python");
-		cmd[1] = readProperty("quedit.properties", "chgk_composer");
+		cmd[1] = readProperty("quedit.properties", "chgksuite");
 		for (int i = 0; i < parameters.length; i++) {
 			cmd[i + 2] = parameters[i];
 		}
