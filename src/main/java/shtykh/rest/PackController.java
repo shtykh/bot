@@ -4,6 +4,7 @@ import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import shtykh.quedit._4s.Parser4s;
 import shtykh.quedit.pack.Pack;
 import shtykh.util.Util;
 import shtykh.util.catalogue.FolderKeaper;
@@ -46,7 +47,7 @@ public class PackController extends FolderKeaper {
 	}
 
 	@Override
-	protected void clear() {
+	protected void clearCash() {
 		packs.clear();
 	}
 
@@ -54,7 +55,8 @@ public class PackController extends FolderKeaper {
 	public void refreshFile(File file) {
 		try {
 			addPack(file.getName());
-		} catch (FileNotFoundException ignored) {}
+		} 
+		catch (FileNotFoundException ignored) {}
 	}
 
 	@Override
@@ -269,7 +271,9 @@ public class PackController extends FolderKeaper {
 		packController.htmlHelper = new HtmlHelper();
 		packController.authors = new AuthorsCatalogue();
 		packController.refresh();
-		System.out.println(packController.editAuthorForm("запас", 0).getEntity());
-		System.out.println(packController.getPack("жопа"));
+		Pack pack = packController.packs.get("test");
+		pack.clearFolder();
+		pack.fromParser(Parser4s.parseMock());
+		System.out.println(pack.home().getEntity());
 	}
 }

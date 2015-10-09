@@ -1,7 +1,7 @@
 package shtykh.quedit.pack;
 
 import shtykh.quedit._4s.FormParameterMaterial4s;
-import shtykh.quedit._4s.Meta4s;
+import shtykh.quedit._4s.Type4s;
 import shtykh.quedit.author.Authored;
 import shtykh.quedit.author.MultiPerson;
 import shtykh.quedit.author.Person;
@@ -24,11 +24,11 @@ public class PackInfo implements FormMaterial, Authored, Jsonable {
 	private FormParameterMaterial4s editor;
 
 	public PackInfo() {
-		metaInfo = new FormParameterMaterial4s(Meta4s.META, "");
-		name = new FormParameterMaterial4s(Meta4s.TITLE, "");
-		nameLJ = new FormParameterMaterial4s(Meta4s.TITLE_LJ, "");
-		date = new FormParameterMaterial4s(Meta4s.DATE, "");
-		editor = new FormParameterMaterial4s(Meta4s.EDITOR, "");
+		metaInfo = new FormParameterMaterial4s(Type4s.META, "");
+		name = new FormParameterMaterial4s(Type4s.TITLE, "");
+		nameLJ = new FormParameterMaterial4s(Type4s.TITLE_LJ, "");
+		date = new FormParameterMaterial4s(Type4s.DATE, "");
+		editor = new FormParameterMaterial4s(Type4s.EDITOR, "");
 		author = new MultiPerson();
 	}
 	

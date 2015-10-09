@@ -3,6 +3,7 @@ package shtykh.quedit.pack;
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import shtykh.quedit._4s.Parser4s;
 import shtykh.quedit._4s._4Sable;
 import shtykh.quedit.author.Authored;
 import shtykh.quedit.author.MultiPerson;
@@ -62,6 +63,47 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 		this.htmlHelper = htmlHelper;
 		this.authors = authors;
 		initActions();
+	}
+
+	public Response home() {
+		refresh();
+		ColoredTable questionsTable;
+		URI uriList;
+		URI uriNew;
+		URI uriText;
+		URI uriBuild;
+		URI uriAuthors;
+		URI uriUploadForm;
+		try {
+			questionsTable = getQuestionTable();
+			uriList = uri("");
+			Parameter<String> parameter = new Parameter<>("index", String.valueOf(size()));
+			uriNew = uri("editForm", parameter);
+			uriText = uri("text");
+			String outFormat = readProperty("quedit.properties", "outFormat");
+			Boolean	debug = parseBoolean(readProperty("quedit.properties", "debug"));
+			uriBuild = uri("compose",
+					new Parameter<>("outFormat", outFormat),
+					new Parameter<>("debug", debug.toString()));
+			uriAuthors = uri("/quedit/rest/authors/list");
+			uriUploadForm = uri("uploadForm", new Parameter<>("what", "4s"));
+
+		} catch (Exception e) {
+			return Response.status(500).entity(e.toString()).build();
+		}
+		String href = href(uriList, getName());
+		String body =
+						href(uriText, "Полный текст в 4s") + "<br>" +
+						href(uriUploadForm, "Импорт из 4s") + "<br>" +
+						href(uriBuild, "Сгенерировать пакет") + "<br>" +
+						folder.getAbsolutePath() + "<br>" +
+						questionsTable.toString() + "<br>" +
+						href(uriNew, "Добавить вопрос №" + numerator.getNumber(size())) + "<br><br>" +
+						editPackAction.buildForm(this) + "<br>" +
+						addEditorAction.buildForm(authors) + "<br>" +
+						href(uriAuthors, "Каталог авторов") + "<br>" +
+						"";
+		return Response.status(Response.Status.OK).entity(htmlPage(getName(), href, body)).build();
 	}
 
 	private void initActions() {
@@ -139,8 +181,6 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 			  FormDataContentDisposition contentDispositionHeader) {
 
 		String filePath = folder + "/uploads/" +contentDispositionHeader.getFileName();
-
-		// save the file to the server
 		saveFile(fileInputStream, filePath);
 		String output = "File saved to server location : " + filePath;
 		return Response.status(200).entity(output).build();
@@ -149,28 +189,32 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 	public Response upload4s(
 			  InputStream fileInputStream,
 			  FormDataContentDisposition contentDispositionHeader) {
-
 		String filePath = folder + "/" +contentDispositionHeader.getFileName();
-
-		// save the file to the server
-		saveFile(fileInputStream, filePath);
-		java.util.List<String> lines = readLines(filePath);
-		for (String line : lines) {
-			//TODO
-		}
-
+		clearFolder();
+		File file = saveFile(fileInputStream, filePath);
+		Parser4s parser4s = new Parser4s(filePath);
+		this.fromParser(parser4s);
+		file.delete();
 		return home();
+	}
+
+	public void fromParser(Parser4s parser4s) {
+		info = parser4s.getInfo();
+		info.save(infoPath());
+		for (Question question : parser4s.getQuestions()) {
+			add(question);
+		}
 	}
 
 	public Response editForm( int index) {
 		Question question = get(index);
 		if (question == null) {
 			question = Question.mock();
-			question.setIndex(size());
+			question.newIndex(size());
 		} else {
-			question.setIndex(index);
+			question.newIndex(index);
 		}
-		question.setNumber(numerator.getNumber(question.getIndex()));
+		question.setNumber(numerator.getNumber(question.index()));
 		String body = questionHtml(question) + editQuestionAction.buildForm(question);
 		return Response
 				.status(Response.Status.OK)
@@ -182,11 +226,11 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 		Question question = get(index);
 		if (question == null) {
 			question = Question.mock();
-			question.setIndex(size());
+			question.newIndex(size());
 		} else {
-			question.setIndex(index);
+			question.newIndex(index);
 		}
-		question.setNumber(numerator.getNumber(question.getIndex()));
+		question.setNumber(numerator.getNumber(question.index()));
 		question.setAuthors(authors);
 		String body = questionHtml(question) + "<br>"
 				+ editAuthorAction.buildForm(question)
@@ -202,7 +246,7 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 		return home();
 	}
 
-	public Response replace( int index) {
+	public Response replace(int index) {
 		super.replace(index, "запас");
 		return home();
 	}
@@ -255,12 +299,12 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 		add(index, question);
 		return home();
 	}
-	
+
 	public Response addEditor(String author) {
 		addAuthor(author);
 		return home();
 	}
-	
+
 	public Response nextColor(
 			 int index,
 			 String colorHex
@@ -282,7 +326,7 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 		add(index, question);
 		return home();
 	}
-	
+
 	public Response text() throws IOException {
 		String text4s = to4s();
 		return Response.ok(htmlPage(getName(), "", text4s.replace("\n", "<br>"))).build();
@@ -324,44 +368,6 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 		Response.ResponseBuilder responseBuilder = Response.ok(file);
 		responseBuilder.header("Content-Disposition", "attachment; filename=\"" + id + ".docx\"");
 		return responseBuilder.build();
-	}
-
-	public Response home() {
-		refresh();
-		ColoredTable questionsTable;
-		URI uriList;
-		URI uriNew;
-		URI uriText;
-		URI uriBuild;
-		URI uriAuthors;
-		try {
-			questionsTable = getQuestionTable();
-			uriList = uri("");
-			Parameter<String> parameter = new Parameter<>("index", String.valueOf(size()));
-			uriNew = uri("editForm", parameter);
-			uriText = uri("text");
-			String outFormat = readProperty("quedit.properties", "outFormat");
-			Boolean	debug = parseBoolean(readProperty("quedit.properties", "debug"));
-			uriBuild = uri("compose",
-					new Parameter<>("outFormat", outFormat),
-					new Parameter<>("debug", debug.toString()));
-			uriAuthors = uri("/quedit/rest/authors/list");
-
-		} catch (URISyntaxException | FileNotFoundException e) {
-			return Response.status(500).entity(e.toString()).build();
-		}
-		String href = href(uriList, getName());
-		String body =
-				href(uriText, "Полный текст в 4s") + "<br>" +
-				href(uriBuild, "Сгенерировать пакет") + "<br>" +
-				folder.getAbsolutePath() + "<br>" +
-				questionsTable.toString() + "<br>" +
-				href(uriNew, "Добавить вопрос №" + numerator.getNumber(size())) + "<br><br>" +
-				editPackAction.buildForm(this) + "<br>" +
-				addEditorAction.buildForm(authors) + "<br>" +
-				href(uriAuthors, "Каталог авторов") + "<br>" +
-				"";
-		return Response.status(Response.Status.OK).entity(htmlPage(getName(), href, body)).build();
 	}
 	
 	public String base(){
@@ -484,14 +490,14 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 
 	@Override
 	public String to4s() {
-		numerator.renumber(getList());
 		StringBuilder sb = new StringBuilder();
 		append(sb, info._4sName());
 		append(sb, info._4sNameLJ());
 		append(sb, info._4sDate());
 		append(sb, info._4sAuthor());
 		append(sb, info._4sMetaInfo());
-		for (Question question : getList()) {
+		for (Question question : super.getAll()) {
+			numerator.renumber(question);
 			sb.append(question.to4s() + "\n");
 		}
 		return sb.toString();

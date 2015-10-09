@@ -26,7 +26,7 @@ public abstract class FolderKeaper {
 	}
 
 	public void refresh() {
-		clear();
+		clearCash();
 		for(File file: folder.listFiles()) {
 			if (isGood(file)) {
 				refreshFile(file);
@@ -34,7 +34,16 @@ public abstract class FolderKeaper {
 		}
 	}
 
-	protected abstract void clear();
+	public void clearFolder() {
+		clearCash();
+		for(File file: folder.listFiles()) {
+			if (isGood(file)) {
+				file.delete();
+			}
+		}
+	}
+
+	protected abstract void clearCash();
 
 	public abstract void refreshFile(File file);
 

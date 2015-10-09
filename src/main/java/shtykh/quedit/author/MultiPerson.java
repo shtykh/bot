@@ -52,4 +52,24 @@ public class MultiPerson extends Person {
 	private int getSize() {
 		return personList.size();
 	}
+
+	public MultiPerson fromString(String value) {
+		personList = new ArrayList<>();
+		String[] words = value.split("\\s+");
+		SinglePerson person = new SinglePerson();
+		for (String word : words) {
+			if (word.matches("\\([^\\)]*\\)")) {
+				person.setCity(word.substring(1, word.indexOf(")")));
+				personList.add(person);
+				person = new SinglePerson();
+			} else {
+				if (StringUtils.isBlank(person.getFirstName())) {
+					person.setFirstName(word);
+				} else {
+					person.setLastName(word);
+				}
+			}
+		}
+		return this;
+	}
 }

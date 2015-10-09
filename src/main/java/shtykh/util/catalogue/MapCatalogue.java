@@ -32,7 +32,7 @@ public abstract class MapCatalogue<T extends Jsonable> extends Catalogue<String,
 	}
 
 	@Override
-	protected void clear() {
+	protected void clearCash() {
 		map.clear();
 	}
 
@@ -52,5 +52,10 @@ public abstract class MapCatalogue<T extends Jsonable> extends Catalogue<String,
 	@Override
 	protected int size() {
 		return map.size();
+	}
+
+	@Override
+	public Iterable<T> getAll() {
+		return map.values();
 	}
 }

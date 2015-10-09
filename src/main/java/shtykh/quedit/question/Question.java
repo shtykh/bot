@@ -2,13 +2,14 @@ package shtykh.quedit.question;
 
 import shtykh.util.CSV;
 import shtykh.quedit._4s.FormParameterMaterial4s;
-import shtykh.quedit._4s.Meta4s;
+import shtykh.quedit._4s.Type4s;
 import shtykh.quedit._4s._4Sable;
 import shtykh.quedit.author.Authored;
 import shtykh.quedit.author.MultiPerson;
 import shtykh.quedit.author.Person;
 import shtykh.rest.AuthorsCatalogue;
 import shtykh.util.Jsonable;
+import shtykh.util.catalogue.Indexed;
 import shtykh.util.html.form.material.FormMaterial;
 import shtykh.util.html.form.material.FormParameterMaterial;
 
@@ -19,9 +20,8 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 /**
  * Created by shtykh on 01/10/15.
  */
-public class Question implements Authored, FormMaterial, Jsonable, _4Sable {
+public class Question implements Authored, FormMaterial, Jsonable, _4Sable, Indexed {
 	private AuthorsCatalogue authors;
-	private static int questionCount = 0;
 	private FormParameterMaterial<String> unaudible;
 	private FormParameterMaterial<Integer> index;
 	private FormParameterMaterial4s number;
@@ -35,14 +35,14 @@ public class Question implements Authored, FormMaterial, Jsonable, _4Sable {
 	private MultiPerson author;
 
 	public Question() {
-		index = new FormParameterMaterial<>(questionCount++, Integer.class);
-		number = new FormParameterMaterial4s(Meta4s.NUMBER, index.get().toString());
+		index = new FormParameterMaterial<>(0, Integer.class);
+		number = new FormParameterMaterial4s(Type4s.NUMBER, index.get().toString());
 		unaudible = new FormParameterMaterial<>("", String.class);
-		text = new FormParameterMaterial4s(Meta4s.QUESTION, "");
-		answer = new FormParameterMaterial4s(Meta4s.ANSWER, "");
-		possibleAnswers = new FormParameterMaterial4s(Meta4s.EQUAL_ANSWER, "");
-		impossibleAnswers = new FormParameterMaterial4s(Meta4s.NOT_EQUAL_ANSWER, "");
-		comment = new FormParameterMaterial4s(Meta4s.COMMENT, "");
+		text = new FormParameterMaterial4s(Type4s.QUESTION, "");
+		answer = new FormParameterMaterial4s(Type4s.ANSWER, "");
+		possibleAnswers = new FormParameterMaterial4s(Type4s.EQUAL_ANSWER, "");
+		impossibleAnswers = new FormParameterMaterial4s(Type4s.NOT_EQUAL_ANSWER, "");
+		comment = new FormParameterMaterial4s(Type4s.COMMENT, "");
 		sources = new FormParameterMaterial<>(new CSV(), CSV.class);
 		color = new FormParameterMaterial<>(Color.GREEN, Color.class);
 		author = new MultiPerson();
@@ -93,7 +93,7 @@ public class Question implements Authored, FormMaterial, Jsonable, _4Sable {
 
 	private void appendAuthor(StringBuilder sb) {
 		if (author != null && !author.getPersonList().isEmpty()) {
-			sb.append("@ ").append(author.toString()).append("\n");
+			sb.append(Type4s.AUTHORS.getSymbol() + " ").append(author.toString()).append("\n");
 		}
 	}
 
@@ -105,7 +105,7 @@ public class Question implements Authored, FormMaterial, Jsonable, _4Sable {
 
 	private void appendSources(StringBuilder sb) {
 		if (sources != null && !sources.get().isEmpty())
-			{sb.append("^ ");
+			{sb.append(Type4s.SOURCES.getSymbol() + " ");
 				String[] sourcesArray = sources.get().asArray();
 				for (String source : sourcesArray) {
 					if (sourcesArray.length > 1) {
@@ -175,8 +175,13 @@ public class Question implements Authored, FormMaterial, Jsonable, _4Sable {
 		this.impossibleAnswers.setValueString(impossibleAnswers);
 	}
 
-	public Integer getIndex() {
+	public int index() {
 		return index.get();
+	}
+
+	@Override
+	public void newIndex(int index) {
+		this.index.set(index);
 	}
 
 	public void setIndex(Integer index) {

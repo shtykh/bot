@@ -161,10 +161,11 @@ public class Util {
 		}
 	}
 
-	public static void saveFile(InputStream uploadedInputStream,
+	public static File saveFile(InputStream uploadedInputStream,
 								String serverLocation) {
+		File file = new File(serverLocation);
 		try {
-			OutputStream outpuStream = new FileOutputStream(new File(serverLocation));
+			OutputStream outpuStream = new FileOutputStream(file);
 			int read = 0;
 			byte[] bytes = new byte[1024];
 			while ((read = uploadedInputStream.read(bytes)) != -1) {
@@ -172,8 +173,9 @@ public class Util {
 			}
 			outpuStream.flush();
 			outpuStream.close();
+			return file;
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw new RuntimeException();
 		}
 	}
 }

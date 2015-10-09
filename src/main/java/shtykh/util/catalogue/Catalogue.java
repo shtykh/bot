@@ -55,9 +55,8 @@ public abstract class Catalogue<K,T extends Jsonable> extends FolderKeaper imple
 		return new File(folder.getAbsolutePath() + "/" + name);
 	}
 
-	protected abstract void clear();
-
-
+	protected abstract void clearCash();
+	
 	public void remove(K name) {
 		file(name).delete();
 		refresh();
@@ -74,4 +73,6 @@ public abstract class Catalogue<K,T extends Jsonable> extends FolderKeaper imple
 	public abstract T get(K key);
 
 	protected abstract int size();
+
+	public abstract Iterable<T> getAll();
 }
