@@ -36,7 +36,7 @@ public abstract class ListCatalogue<T extends Jsonable> extends Catalogue<Intege
 	}
 
 	@Override
-	protected void clear() {
+	protected void clearCash() {
 		list.clear();
 	}
 
@@ -82,7 +82,8 @@ public abstract class ListCatalogue<T extends Jsonable> extends Catalogue<Intege
 		return list.indexOf(p);
 	}
 
-	protected List<T> getList() {
+	@Override
+	public List<T> getAll() {
 		return list;
 	}
 
