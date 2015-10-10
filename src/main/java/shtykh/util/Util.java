@@ -162,10 +162,15 @@ public class Util {
 	}
 
 	public static File saveFile(InputStream uploadedInputStream,
-								String serverLocation) {
-		File file = new File(serverLocation);
-		try {
-			OutputStream outpuStream = new FileOutputStream(file);
+								String serverLocation, String fileName) throws IOException {
+		File directory = new File(serverLocation);
+		directory.mkdirs();
+		File file = new File(directory + "/" + fileName);
+		int i = 0;
+		while (file.exists()) {
+			file = new File(directory + "/" + fileName + "(" + i + ")");
+		}
+		try(OutputStream outpuStream = new FileOutputStream(file)){
 			int read = 0;
 			byte[] bytes = new byte[1024];
 			while ((read = uploadedInputStream.read(bytes)) != -1) {
@@ -174,8 +179,6 @@ public class Util {
 			outpuStream.flush();
 			outpuStream.close();
 			return file;
-		} catch (IOException e) {
-			throw new RuntimeException();
 		}
 	}
 }

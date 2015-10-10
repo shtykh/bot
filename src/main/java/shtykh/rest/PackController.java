@@ -4,7 +4,6 @@ import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import shtykh.quedit._4s.Parser4s;
 import shtykh.quedit.pack.Pack;
 import shtykh.util.Util;
 import shtykh.util.catalogue.FolderKeaper;
@@ -72,7 +71,7 @@ public class PackController extends FolderKeaper {
 			try {
 				return (Response) findMethodByName(Pack.class, methodName).invoke(pack, args);
 			} catch (NoSuchMethodException | InvocationTargetException | ClassCastException | IllegalAccessException e) {
-				return Response.status(500).entity(e.getClass() + ":" + e.getMessage()).build();
+				throw new RuntimeException(e);
 			}
 		}
 	}
@@ -136,30 +135,35 @@ public class PackController extends FolderKeaper {
 	}
 
 	@GET
-	@Path("{id}/uploadForm")
-	public Response uploadForm(@PathParam("id") String id, @QueryParam("what") String what) {
+	@Path("{id}/addPicture")
+	public Response addPicture(
+			@PathParam("id") String id,
+			@QueryParam("number") String number,
+			@QueryParam("path") String path
+			) {
+		return getOr404(id, "addPicture", number, path);
+	}
+
+	@GET
+	@Path("{id}/uploadForm/{what}")
+	public Response uploadForm(@PathParam("id") String id, @PathParam("what") String what) {
 		return getOr404(id, "uploadForm", what);
 	}
 
 	@POST
-	@Path("{id}/upload")
+	@Path("{id}/upload/{what}")
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	public Response uploadFile(
 			@PathParam("id") String id,
+			@PathParam("what") String what,
 			@FormDataParam("file") InputStream fileInputStream,
 			@FormDataParam("file") FormDataContentDisposition contentDispositionHeader) {
-		return getOr404(id, "upload", fileInputStream, contentDispositionHeader);
+		if (what == null) {
+			what = "file";
+		}
+		return getOr404(id, "upload_" + what, fileInputStream, contentDispositionHeader);
 	}
-
-	@POST
-	@Path("{id}/upload4s")
-	@Consumes(MediaType.MULTIPART_FORM_DATA)
-	public Response upload4s(
-			@PathParam("id") String id,
-			@FormDataParam("file") InputStream fileInputStream,
-			@FormDataParam("file") FormDataContentDisposition contentDispositionHeader) {
-		return getOr404(id, "upload4s", fileInputStream, contentDispositionHeader);
-	}
+	
 	@GET
 	@Path("{id}/editForm")
 	public Response editForm(@PathParam("id") String id, @QueryParam("index") int index) {
@@ -271,9 +275,9 @@ public class PackController extends FolderKeaper {
 		packController.htmlHelper = new HtmlHelper();
 		packController.authors = new AuthorsCatalogue();
 		packController.refresh();
-		Pack pack = packController.packs.get("test");
-		pack.clearFolder();
-		pack.fromParser(Parser4s.parseMock());
-		System.out.println(pack.home().getEntity());
+		Pack pack = packController.packs.get("rudn_cup");
+		for (String s : ((String) pack.text().getEntity()).split("<br>")) {
+			System.out.println(s + "<br>");
+		}
 	}
 }

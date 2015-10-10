@@ -10,12 +10,13 @@ import shtykh.util.html.form.material.FormParameterMaterial;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
  * Created by shtykh on 05/10/15.
  */
-public abstract class ListCatalogue<T extends Jsonable> extends Catalogue<Integer, T> {
+public abstract class ListCatalogue<T extends Jsonable & Indexed> extends Catalogue<Integer, T> {
 	private List<T> list;
 
 	private Numerator numerator;
@@ -48,11 +49,11 @@ public abstract class ListCatalogue<T extends Jsonable> extends Catalogue<Intege
 	}
 
 	@Override
-	public void add(Integer number, T item) {
-		if (number >= size()) {
+	public void add(Integer index, T item) {
+		if (index >= size()) {
 			list.add(item);
 		}
-		Util.write(file(number), item.toJson());
+		Util.write(file(index), item.toJson());
 	}
 
 	@Override
@@ -90,5 +91,33 @@ public abstract class ListCatalogue<T extends Jsonable> extends Catalogue<Intege
 	@Override
 	protected void add(T p) {
 		add(size(), p);
+	}
+
+	@Override
+	public void remove(Integer name) {
+		list.remove(name);
+		super.remove(name);
+	}
+
+	@Override
+	public void replace(Integer name, String folder) {
+		list.remove(name);
+		super.replace(name, folder);
+	}
+
+	@Override
+	public Comparator<? super File> getFilesComparator() {
+		return new Comparator<File>() {
+			@Override
+			public int compare(File o1, File o2) {
+				Boolean isGood1 = isGood(o1);
+				Boolean isGood2 = isGood(o2);
+				if(isGood1 && isGood2) {
+					return Integer.decode(o1.getName()).compareTo(Integer.decode(o2.getName()));
+				} else {
+					return isGood1.compareTo(isGood2);
+				}
+			}
+		};
 	}
 }

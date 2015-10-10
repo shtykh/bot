@@ -14,4 +14,9 @@ public class NaturalNumerator implements Numerator {
 	public String getNumber(int index) {
 		return String.valueOf(index + first);
 	}
+
+	@Override
+	public int getIndex(String number) {
+		return Integer.decode(number) - 1;
+	}
 }

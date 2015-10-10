@@ -58,7 +58,7 @@ public class MultiPerson extends Person {
 		String[] words = value.split("\\s+");
 		SinglePerson person = new SinglePerson();
 		for (String word : words) {
-			if (word.matches("\\([^\\)]*\\)")) {
+			if (word.matches("\\([^\\)]*\\)\\,?")) {
 				person.setCity(word.substring(1, word.indexOf(")")));
 				personList.add(person);
 				person = new SinglePerson();

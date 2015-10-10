@@ -39,13 +39,16 @@ public class Parser4s {
 			String[] firstAndTail = line.split("\\s", 2);
 			Type4s newType =Type4s.fromString(firstAndTail[0]);
 			if (! newType.equals(Type4s.NONE)) {
-				if (!newType.equals(Type4s.LIST_ELEM)) {
+				if (newType.equals(Type4s.LIST_ELEM)) {
+					sb.append(firstAndTail[1]);
+					sb.append("\n");
+				} else {
 					set4s(currentType, sb.toString(), q);
 					currentType = newType;
+					sb = new StringBuilder(firstAndTail[1]);
 				}
-				sb = new StringBuilder(firstAndTail[1]);
 			} else {
-				sb.append("\n").append(firstAndTail[1]);
+				sb.append('\n').append(line);
 			}
 		}
 		set4s(currentType, sb.toString(), q);
@@ -114,7 +117,7 @@ public class Parser4s {
 	}
 
 	public static Parser4s parseMock() {
-		String path = "/Users/shtykh/Desktop/4s.4s";
+		String path = "/Users/shtykh/bot/target/4s.4s";
 		return new Parser4s(path);
 	}
 }

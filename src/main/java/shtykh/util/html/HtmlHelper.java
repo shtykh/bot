@@ -3,6 +3,7 @@ package shtykh.util.html;
 import org.apache.http.client.utils.URIBuilder;
 import shtykh.util.html.param.Parameter;
 
+import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -86,11 +87,23 @@ public class HtmlHelper {
 				.build(value);
 	}
 
+	public static Response error(Exception e) {
+		return Response.status(500).entity(htmlPage("Ошибка", e.getClass() + ": " + e.getMessage())).build();
+	}
+
+	public Response listResponce(String title, String... s) {
+		StringBuilder sb = new StringBuilder();
+		for (String s1 : s) {
+			sb.append(s1).append("<br>");
+		}
+		return Response.ok(htmlPage(title, sb.toString())).build();
+	}
+
 	private static class HtmlBuilder {
 		private static final String DEFAULT_TITLE = "Untitled";
 		private static final String DEFAULT_BODY = "";
 		private static final String DEFAULT_CHARSET = "UTF-8";
-		private static final String DEFAULT_STYLE = "";
+		private static final String DEFAULT_STYLE = "h1 {font-family: Cambria;} p {font-family: Cambria;}";
 		private String title;
 		private String header;
 		private String body;

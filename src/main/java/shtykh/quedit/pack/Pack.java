@@ -1,6 +1,7 @@
 package shtykh.quedit.pack;
 
 import com.sun.jersey.core.header.FormDataContentDisposition;
+import com.sun.research.ws.wadl.HTTPMethods;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import shtykh.quedit._4s.Parser4s;
@@ -19,9 +20,13 @@ import shtykh.util.catalogue.Catalogue;
 import shtykh.util.catalogue.ListCatalogue;
 import shtykh.util.html.ColoredTable;
 import shtykh.util.html.HtmlHelper;
+import shtykh.util.html.TableBuilder;
 import shtykh.util.html.UriGenerator;
 import shtykh.util.html.form.build.ActionBuilder;
+import shtykh.util.html.form.build.FormBuilder;
 import shtykh.util.html.form.material.FormMaterial;
+import shtykh.util.html.form.param.FormParameter;
+import shtykh.util.html.form.param.FormParameterSignature;
 import shtykh.util.html.param.Parameter;
 
 import javax.ws.rs.core.Response;
@@ -35,8 +40,7 @@ import java.net.URISyntaxException;
 
 import static java.lang.Boolean.parseBoolean;
 import static shtykh.util.Util.*;
-import static shtykh.util.html.HtmlHelper.href;
-import static shtykh.util.html.HtmlHelper.htmlPage;
+import static shtykh.util.html.HtmlHelper.*;
 import static shtykh.util.html.form.build.FormBuilder.buildUploadForm;
 import static shtykh.util.html.form.param.FormParameterType.*;
 
@@ -59,7 +63,6 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 	public Pack(String id, HtmlHelper htmlHelper, AuthorsCatalogue authors) throws FileNotFoundException {
 		super(Question.class, Util.readProperty("quedit.properties", "packs") + "/" + id);
 		this.id = id;
-		setName(id);
 		this.htmlHelper = htmlHelper;
 		this.authors = authors;
 		initActions();
@@ -68,15 +71,15 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 	public Response home() {
 		refresh();
 		ColoredTable questionsTable;
-		URI uriList;
+		URI uriHome;
 		URI uriNew;
 		URI uriText;
 		URI uriBuild;
 		URI uriAuthors;
-		URI uriUploadForm;
+		TableBuilder hrefs;
 		try {
 			questionsTable = getQuestionTable();
-			uriList = uri("");
+			uriHome = uri("");
 			Parameter<String> parameter = new Parameter<>("index", String.valueOf(size()));
 			uriNew = uri("editForm", parameter);
 			uriText = uri("text");
@@ -85,25 +88,27 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 			uriBuild = uri("compose",
 					new Parameter<>("outFormat", outFormat),
 					new Parameter<>("debug", debug.toString()));
-			uriAuthors = uri("/quedit/rest/authors/list");
-			uriUploadForm = uri("uploadForm", new Parameter<>("what", "4s"));
-
+			uriAuthors = htmlHelper.uriBuilder("/quedit/rest/authors/list").build();
+			hrefs = new TableBuilder("Загрузить",
+					href(uriBuilder("uploadForm/4s").build(), "Импорт пакета из 4s"),
+					href(uriBuilder("uploadForm/pic").build(), "Загрузить картинку"));
 		} catch (Exception e) {
-			return Response.status(500).entity(e.toString()).build();
+			return error(e);
 		}
-		String href = href(uriList, getName());
-		String body =
-						href(uriText, "Полный текст в 4s") + "<br>" +
-						href(uriUploadForm, "Импорт из 4s") + "<br>" +
-						href(uriBuild, "Сгенерировать пакет") + "<br>" +
-						folder.getAbsolutePath() + "<br>" +
+
+		String hrefHome = href(uriHome, getName());
+		hrefs.addRow("Выгрузить",
+				href(uriText, "Полный текст в 4s"),
+				href(uriBuild, "Сгенерировать пакет"));
+		String body = 
+				hrefs.toString() + "<br>" +
 						questionsTable.toString() + "<br>" +
-						href(uriNew, "Добавить вопрос №" + numerator.getNumber(size())) + "<br><br>" +
+						href(uriNew, "Добавить вопрос №" + numerator.getNumber(size())) + "<br>" +
 						editPackAction.buildForm(this) + "<br>" +
 						addEditorAction.buildForm(authors) + "<br>" +
 						href(uriAuthors, "Каталог авторов") + "<br>" +
 						"";
-		return Response.status(Response.Status.OK).entity(htmlPage(getName(), href, body)).build();
+		return Response.status(Response.Status.OK).entity(htmlPage(getName(), hrefHome, body)).build();
 	}
 
 	private void initActions() {
@@ -167,35 +172,56 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 		return home();
 	}
 
-	public Response uploadForm( String what) {
-		String action = "upload";
-		if (what.equals("4s")) {
-			action = "upload4s";
+	public Response uploadForm(String what) {
+		return Response.ok(htmlPage("Загрузите файл", buildUploadForm(address("upload" + "/" + what)))).build();
+	}
+
+	public Response upload_file(
+			  InputStream fileInputStream,
+			  FormDataContentDisposition contentDispositionHeader) {
+		try{
+			String folderPath = folder + "/uploads";
+			File file = saveFile(fileInputStream, folderPath, contentDispositionHeader.getFileName());
+			String output = "File saved to server location : " + file;
+			return Response.status(200).entity(output).build();
+		} catch (Exception e) {
+			return error(e);
 		}
-		return Response.ok(htmlPage("Загрузите файл", buildUploadForm(action))).build();
-
 	}
 
-	public Response uploadFile(
+	public Response upload_4s(
 			  InputStream fileInputStream,
 			  FormDataContentDisposition contentDispositionHeader) {
-
-		String filePath = folder + "/uploads/" +contentDispositionHeader.getFileName();
-		saveFile(fileInputStream, filePath);
-		String output = "File saved to server location : " + filePath;
-		return Response.status(200).entity(output).build();
+		try{
+			String folderPath = folder.getAbsolutePath();
+			clearFolder();
+			File file = saveFile(fileInputStream, folderPath, contentDispositionHeader.getFileName());
+			Parser4s parser4s = new Parser4s(folderPath);
+			this.fromParser(parser4s);
+			file.delete();
+			return home();
+		} catch (Exception e) {
+			return error(e);
+		}
 	}
 
-	public Response upload4s(
-			  InputStream fileInputStream,
-			  FormDataContentDisposition contentDispositionHeader) {
-		String filePath = folder + "/" +contentDispositionHeader.getFileName();
-		clearFolder();
-		File file = saveFile(fileInputStream, filePath);
-		Parser4s parser4s = new Parser4s(filePath);
-		this.fromParser(parser4s);
-		file.delete();
-		return home();
+	public Response upload_pic(
+			InputStream fileInputStream,
+			FormDataContentDisposition contentDispositionHeader) {
+		new File(folder + "/pics").mkdirs();
+		try {
+			String folderPath = folder + "/pics";
+			File file = saveFile(fileInputStream, folderPath, contentDispositionHeader.getFileName());
+			FormBuilder formBuilder = new FormBuilder(address("addPicture"));
+			formBuilder
+					.addMember(new FormParameter<>(
+							new FormParameterSignature("path", hidden), file.getAbsolutePath(), String.class))
+					.addMember(new FormParameter<>(
+							new FormParameterSignature("number", "Добавить раздаточный материал к вопросу номер", text), "", String.class));
+			return htmlHelper.listResponce("Картинка загружена", formBuilder.build(HTTPMethods.GET));
+		} catch (Exception e) {
+			return error(e);
+		}
 	}
 
 	public void fromParser(Parser4s parser4s) {
@@ -241,9 +267,20 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 				.build();
 	}
 
-	public Response removeMethod( int index) {
+	public Response removeMethod(int index) {
 		super.remove(index);
 		return home();
+	}
+
+	public Response addPicture(String number, String path) {
+		try{
+			int index = numerator.getIndex(number);
+			Question q = get(index);
+			q.setUnaudible(q.getUnaudible() + "\nРаздаточный материал: (img " + path + ")");
+			return editForm(index);
+		} catch (Exception e) {
+			return error(e);
+		}
 	}
 
 	public Response replace(int index) {
@@ -402,6 +439,7 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 					,href(uriEdit, "Редактировать")
 					,href(uriEditAuthor, authorString)
 					,href(uriReplace, "В запас")
+					,href(uriRemove, "Удалить")
 					,href(uriUp, "<--")
 					,href(uriDown, "-->")
 					);
@@ -434,9 +472,9 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 	}
 
 	@Override
-	public void add(Integer number, Question item) {
-		super.add(number, item);
-		number(number, item);
+	public void add(Integer index, Question item) {
+		super.add(index, item);
+		number(index, item);
 	}
 
 	@Override

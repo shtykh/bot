@@ -16,6 +16,12 @@ public class FormParameter<T> extends Parameter<T> {
 		this.material = material;
 	}
 
+	public FormParameter(FormParameterSignature sign, T obj, Class<T> clazz) {
+		super(sign.getName(), obj);
+		this.sign = sign;
+		this.material = new FormParameterMaterial<>(obj, clazz);
+	}
+
 	@Override
 	public String getValueString() {
 		return material.getValueString();

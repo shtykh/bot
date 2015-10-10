@@ -79,9 +79,10 @@ public class Question implements Authored, FormMaterial, Jsonable, _4Sable, Inde
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		appendUnaudible(sb);
 		append(sb, number);
-		append(sb, text);
+		sb.append(Type4s.QUESTION.getSymbol() + " ");
+		appendUnaudible(sb);
+		sb.append(text.get() + "\n");
 		append(sb, answer);
 		append(sb, possibleAnswers);
 		append(sb, impossibleAnswers);

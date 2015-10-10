@@ -10,6 +10,8 @@ import java.util.Collection;
  */
 public interface Numerator {
 	String getNumber(int index);
+	int getIndex(String number);
+
 	default CSV firstNumbers(int n) {
 		Collection<String> string = new ArrayList<>();
 		for (int i = 0; i < n; i++) {

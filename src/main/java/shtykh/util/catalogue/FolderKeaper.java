@@ -1,13 +1,16 @@
 package shtykh.util.catalogue;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * Created by shtykh on 08/10/15.
  */
 public abstract class FolderKeaper {
 	protected File folder;
-
 	public FolderKeaper(String folderName) {
 		initFolder(folderName);
 	}
@@ -27,10 +30,16 @@ public abstract class FolderKeaper {
 
 	public void refresh() {
 		clearCash();
-		for(File file: folder.listFiles()) {
-			if (isGood(file)) {
-				refreshFile(file);
+		try {
+			List<File> files = Arrays.asList(folder.listFiles());
+			Collections.sort(files, getFilesComparator());
+			for (File file : files) {
+				if (isGood(file)) {
+					refreshFile(file);
+				}
 			}
+		} catch (Exception ignored) {
+			ignored.printStackTrace();
 		}
 	}
 
@@ -51,5 +60,14 @@ public abstract class FolderKeaper {
 
 	public String folderPath() {
 		return folder.getAbsolutePath();
+	}
+
+	public Comparator<? super File> getFilesComparator() {
+		return new Comparator<File>() {
+			@Override
+			public int compare(File o1, File o2) {
+				return o1.compareTo(o2);
+			}
+		};
 	}
 }
