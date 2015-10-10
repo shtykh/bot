@@ -116,6 +116,12 @@ public class PackController extends FolderKeaper {
 		return pack.home();
 	}
 
+	@GET
+	@Path("{id}/info")
+	public Response info(@PathParam("id") String id) throws IOException {
+		return getOr404(id, "info");
+	}
+
 	private Pack addPack(String id) throws FileNotFoundException {
 		Pack pack = new Pack(id, htmlHelper, authors);
 		packs.put(id, pack);
@@ -228,12 +234,49 @@ public class PackController extends FolderKeaper {
 	}
 
 	@GET
+	@Path("{id}/removeAuthor")
+	public Response removeAuthor(
+			@PathParam("id") String id,
+			@QueryParam("index") int index,
+			@QueryParam("keys") String author
+	) {
+		return getOr404(id, "removeAuthor", index, author);
+	}
+
+	@GET
 	@Path("{id}/addEditor")
 	public Response addEditor(
 			@PathParam("id") String id,
 			@QueryParam("keys") String author
 	) {
 		return getOr404(id, "addEditor", author);
+	}
+
+	@GET
+	@Path("{id}/addTester")
+	public Response addTester(
+			@PathParam("id") String id,
+			@QueryParam("keys") String testerName
+	) {
+		return getOr404(id, "addTester", testerName);
+	}
+
+	@GET
+	@Path("{id}/removeEditor")
+	public Response removeEditor(
+			@PathParam("id") String id,
+			@QueryParam("keys") String author
+	) {
+		return getOr404(id, "removeEditor", author);
+	}
+
+	@GET
+	@Path("{id}/removeTester")
+	public Response removeTester(
+			@PathParam("id") String id,
+			@QueryParam("keys") String testerName
+	) {
+		return getOr404(id, "removeTester", testerName);
 	}
 
 	@GET

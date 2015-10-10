@@ -57,8 +57,12 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 
 	private ActionBuilder editQuestionAction;
 	private ActionBuilder editAuthorAction;
+	private ActionBuilder removeAuthorAction;
 	private ActionBuilder editPackAction;
 	private ActionBuilder addEditorAction;
+	private ActionBuilder addTesterAction;
+	private ActionBuilder removeEditorAction;
+	private ActionBuilder removeTesterAction;
 
 	public Pack(String id, HtmlHelper htmlHelper, AuthorsCatalogue authors) throws FileNotFoundException {
 		super(Question.class, Util.readProperty("quedit.properties", "packs") + "/" + id);
@@ -75,7 +79,7 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 		URI uriNew;
 		URI uriText;
 		URI uriBuild;
-		URI uriAuthors;
+		URI uriPreambula;
 		TableBuilder hrefs;
 		try {
 			questionsTable = getQuestionTable();
@@ -88,7 +92,7 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 			uriBuild = uri("compose",
 					new Parameter<>("outFormat", outFormat),
 					new Parameter<>("debug", debug.toString()));
-			uriAuthors = htmlHelper.uriBuilder("/quedit/rest/authors/list").build();
+			uriPreambula = uri("info");
 			hrefs = new TableBuilder("Загрузить",
 					href(uriBuilder("uploadForm/4s").build(), "Импорт пакета из 4s"),
 					href(uriBuilder("uploadForm/pic").build(), "Загрузить картинку"));
@@ -102,20 +106,46 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 				href(uriBuild, "Сгенерировать пакет"));
 		String body = 
 				hrefs.toString() + "<br>" +
+						href(uriPreambula, "Редактировать преамбулу") +
 						questionsTable.toString() + "<br>" +
 						href(uriNew, "Добавить вопрос №" + numerator.getNumber(size())) + "<br>" +
-						editPackAction.buildForm(this) + "<br>" +
-						addEditorAction.buildForm(authors) + "<br>" +
-						href(uriAuthors, "Каталог авторов") + "<br>" +
 						"";
 		return Response.status(Response.Status.OK).entity(htmlPage(getName(), hrefHome, body)).build();
 	}
 
+
+	public Response info() {
+		refresh();
+		URI uriHome;
+		URI uriAuthors;
+		try {
+			uriHome = uri("");
+			uriAuthors = htmlHelper.uriBuilder("/quedit/rest/authors/list").build();
+		} catch (Exception e) {
+			return error(e);
+		}
+		String hrefHome = href(uriHome, getName());
+		String body =
+				info.to4s().replace("\n", "<br>") + "<br>" +
+				editPackAction.buildForm(this) + "<br>" +
+				addEditorAction.buildForm(authors) + "<br>" +
+				removeEditorAction.buildForm(authors) + "<br>" +
+				addTesterAction.buildForm(authors) + "<br>" +
+				removeTesterAction.buildForm(authors) + "<br>" +
+				href(uriAuthors, "Каталог персонажей") + "<br>" +
+				"";
+		return Response.status(Response.Status.OK).entity(htmlPage(getName(), hrefHome, body)).build();
+	}
+	
 	private void initActions() {
 		editQuestionAction = new ActionBuilder(address("edit"));
 		editAuthorAction = new ActionBuilder(address("editAuthor"));
+		removeAuthorAction = new ActionBuilder(address("removeAuthor"));
 		editPackAction = new ActionBuilder(address("editPack"));
 		addEditorAction = new ActionBuilder(address("addEditor"));
+		addTesterAction = new ActionBuilder(address("addTester"));
+		removeEditorAction = new ActionBuilder(address("removeEditor"));
+		removeTesterAction = new ActionBuilder(address("removeTester"));
 		try {
 			editQuestionAction
 					.addParam(Question.class, "number", "Номер", comment)
@@ -131,11 +161,23 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 			;
 			editAuthorAction
 					.addParam(Catalogue.class, "keys", "Добавить автора", select)
-					.addParam(Question.class, "number", "Номер", comment)
+					.addParam(Question.class, "index", "Номер", hidden)
+			;
+			removeAuthorAction
+					.addParam(Catalogue.class, "keys", "Удалить автора", select)
 					.addParam(Question.class, "index", "Номер", hidden)
 			;
 			addEditorAction
 					.addParam(Catalogue.class, "keys", "Добавить редактора", select)
+			;
+			addTesterAction
+					.addParam(Catalogue.class, "keys", "Добавить тестера", select)
+			;
+			removeEditorAction
+					.addParam(Catalogue.class, "keys", "Удалить редактора", select)
+			;
+			removeTesterAction
+					.addParam(Catalogue.class, "keys", "Удалить тестера", select)
 			;
 			editPackAction
 					.addParam(PackInfo.class, "name", "Название пакета", text)
@@ -169,7 +211,7 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 		setNameLJ(nameLJ);
 		setDate(date);
 		setMetaInfo(metaInfo);
-		return home();
+		return info();
 	}
 
 	public Response uploadForm(String what) {
@@ -232,7 +274,7 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 		}
 	}
 
-	public Response editForm( int index) {
+	public Response editForm(int index) {
 		Question question = get(index);
 		if (question == null) {
 			question = Question.mock();
@@ -260,7 +302,8 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 		question.setAuthors(authors);
 		String body = questionHtml(question) + "<br>"
 				+ editAuthorAction.buildForm(question)
-				+ href(htmlHelper.uriBuilder("/quedit/rest/authors/list").build(), "Каталог авторов");
+				+ removeAuthorAction.buildForm(question)
+				+ href(htmlHelper.uriBuilder("/quedit/rest/authors/list").build(), "Каталог персонажей");
 		return Response
 				.status(Response.Status.OK)
 				.entity(htmlPage("Добавить автора", body))
@@ -334,12 +377,17 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 		question.setAuthors(authors);
 		question.addAuthor(author);
 		add(index, question);
-		return home();
+		return editForm(index);
 	}
 
-	public Response addEditor(String author) {
-		addAuthor(author);
-		return home();
+	public Response removeAuthor(
+			int index,
+			String author
+	) {
+		Question question = get(index);
+		((MultiPerson)question.getAuthor()).getPersonList().remove(authors.get(author));
+		add(index, question);
+		return editForm(index);
 	}
 
 	public Response nextColor(
@@ -489,12 +537,40 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 		item.setNumber(numerator.getNumber(number));
 	}
 
-	public void addAuthor(String name) {
+	public Response addEditor(String name) {
 		if (authors == null) {
 			throw new RuntimeException("Authors were null");
 		}
 		info.addAuthor(authors.get(name));
 		info.save(infoPath());
+		return info();
+	}
+
+	public Response removeEditor(String name) {
+		if (authors == null) {
+			throw new RuntimeException("Authors were null");
+		}
+		info.removeAuthor(authors.get(name));
+		info.save(infoPath());
+		return info();
+	}
+
+	public Response addTester(String name) {
+		if (authors == null) {
+			throw new RuntimeException("Authors were null");
+		}
+		info.addTester(authors.get(name));
+		info.save(infoPath());
+		return info();
+	}
+	
+	public Response removeTester(String name) {
+		if (authors == null) {
+			throw new RuntimeException("Authors were null");
+		}
+		info.removeTester(authors.get(name));
+		info.save(infoPath());
+		return info();
 	}
 
 	private String getPath(File folder, String extension) {
@@ -529,14 +605,10 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 	@Override
 	public String to4s() {
 		StringBuilder sb = new StringBuilder();
-		append(sb, info._4sName());
-		append(sb, info._4sNameLJ());
-		append(sb, info._4sDate());
-		append(sb, info._4sAuthor());
-		append(sb, info._4sMetaInfo());
+		sb.append(info.to4s()).append('\n');
 		for (Question question : super.getAll()) {
 			numerator.renumber(question);
-			sb.append(question.to4s() + "\n");
+			sb.append(question.to4s()).append('\n');
 		}
 		return sb.toString();
 	}
@@ -545,6 +617,7 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 	public Person getAuthor() {
 		return info.getAuthor();
 	}
+	
 	@Override
 	public void setAuthor(MultiPerson author) {
 		info.setAuthor(author);

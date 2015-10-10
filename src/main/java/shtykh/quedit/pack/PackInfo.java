@@ -1,7 +1,9 @@
 package shtykh.quedit.pack;
 
+import org.apache.commons.lang3.StringUtils;
 import shtykh.quedit._4s.FormParameterMaterial4s;
 import shtykh.quedit._4s.Type4s;
+import shtykh.quedit._4s._4Sable;
 import shtykh.quedit.author.Authored;
 import shtykh.quedit.author.MultiPerson;
 import shtykh.quedit.author.Person;
@@ -15,12 +17,18 @@ import java.io.File;
 /**
  * Created by shtykh on 08/10/15.
  */
-public class PackInfo implements FormMaterial, Authored, Jsonable {
+public class PackInfo implements FormMaterial, Authored, Jsonable, _4Sable {
 	private FormParameterMaterial4s metaInfo;
 	private FormParameterMaterial4s name;
 	private FormParameterMaterial4s nameLJ;
 	private FormParameterMaterial4s date;
 	private MultiPerson author;
+
+	public void setTester(MultiPerson tester) {
+		this.tester = tester;
+	}
+
+	private MultiPerson tester;
 	private FormParameterMaterial4s editor;
 
 	public PackInfo() {
@@ -30,6 +38,7 @@ public class PackInfo implements FormMaterial, Authored, Jsonable {
 		date = new FormParameterMaterial4s(Type4s.DATE, "");
 		editor = new FormParameterMaterial4s(Type4s.EDITOR, "");
 		author = new MultiPerson();
+		tester = new MultiPerson();
 	}
 	
 	public void addAuthor(SinglePerson name) {
@@ -38,6 +47,13 @@ public class PackInfo implements FormMaterial, Authored, Jsonable {
 		}
 		author.add(name);
 		editor.setValueString(this.author.toString());
+	}
+
+	public void addTester(SinglePerson name) {
+		if (tester == null) {
+			tester = new MultiPerson();
+		}
+		tester.add(name);
 	}
 	
 	@Override
@@ -122,5 +138,42 @@ public class PackInfo implements FormMaterial, Authored, Jsonable {
 				", metaInfo=" + getMetaInfo() +
 				", editor=" + getAuthor() +
 				'}';
+	}
+
+	public MultiPerson getTester() {
+		return tester;
+	}
+
+	public String thankToTesters() {
+		if (tester.getPersonList().isEmpty()) {
+			return "";
+		} else {
+			tester.sort();
+			String firstSymbol = (StringUtils.isBlank(metaInfo.get())?"# ":"");
+			String who = author.getPersonList().size() > 1 ? "Редакторы выражают":"Редактор выражает";
+			return firstSymbol + who + " благодарность " +
+					"за помощь и ценные замечания в подготовке пакета следующим людям:\n" +
+					tester;
+		}
+	}
+
+	public String to4s() {
+		StringBuilder sb = new StringBuilder();
+		append(sb, _4sName());
+		append(sb, _4sNameLJ());
+		append(sb, _4sDate());
+		append(sb, _4sAuthor());
+		append(sb, _4sMetaInfo());
+		sb.append(thankToTesters());
+		return sb.toString();
+	}
+
+	public void removeAuthor(SinglePerson singlePerson) {
+		author.getPersonList().remove(singlePerson);
+		editor.set(author.toString());
+	}
+
+	public void removeTester(SinglePerson singlePerson) {
+		tester.getPersonList().remove(singlePerson);
 	}
 }

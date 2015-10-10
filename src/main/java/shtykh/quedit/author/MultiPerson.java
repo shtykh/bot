@@ -4,6 +4,7 @@ import org.apache.commons.lang.StringUtils;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -71,5 +72,9 @@ public class MultiPerson extends Person {
 			}
 		}
 		return this;
+	}
+	
+	public void sort() {
+		Collections.sort(personList);
 	}
 }
