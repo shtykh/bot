@@ -7,6 +7,7 @@ import shtykh.util.Util;
 import shtykh.util.html.form.material.FormParameterMaterial;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -99,7 +100,7 @@ public abstract class ListCatalogue<T extends Jsonable & Indexed> extends Catalo
 	}
 
 	@Override
-	public void replace(Integer name, String folder) {
+	public void replace(Integer name, String folder) throws IOException {
 		list.remove(name);
 		super.replace(name, folder);
 	}

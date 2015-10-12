@@ -331,7 +331,7 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 		}
 	}
 
-	public Response replace(int index) {
+	public Response replace(int index) throws IOException {
 		super.replace(index, "запас");
 		return home();
 	}
