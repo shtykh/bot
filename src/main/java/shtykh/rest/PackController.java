@@ -134,10 +134,12 @@ public class PackController extends FolderKeaper {
 			@PathParam("id") String id,
 			@QueryParam("name") String name,
 			@QueryParam("nameLJ") String nameLJ,
-			@QueryParam("date") String date,
+			@QueryParam("date") String date,			
+			@QueryParam("first") int first,
+			@QueryParam("zeroNumbers") String zeroNumbers,
 			@QueryParam("metaInfo") String metaInfo
 	) {
-		return getOr404(id, "editPack", name, nameLJ, date, metaInfo);
+		return getOr404(id, "editPack", name, nameLJ, date, metaInfo, first, zeroNumbers);
 	}
 
 	@GET
@@ -319,7 +321,8 @@ public class PackController extends FolderKeaper {
 		packController.authors = new AuthorsCatalogue();
 		packController.refresh();
 		Pack pack = packController.packs.get("rudn_cup");
-		for (String s : ((String) pack.text().getEntity()).split("<br>")) {
+		pack.editPack("Кубок РУДН", "Кубок РУДН", "20 октября 2015", "", 1, "0\n00\n000");
+		for (String s : ((String) pack.info().getEntity()).split("<br>")) {
 			System.out.println(s + "<br>");
 		}
 	}

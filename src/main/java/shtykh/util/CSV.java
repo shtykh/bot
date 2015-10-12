@@ -2,7 +2,9 @@ package shtykh.util;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import static shtykh.util.Util.random;
 
@@ -77,5 +79,17 @@ public class CSV {
 		} else {
 			return array[random.nextInt(array.length)];
 		}
+	}
+
+	public int size() {
+		return asArray().length;
+	}
+
+	public String get(int index) {
+		return asArray()[index];
+	}
+
+	public List<String> asList() {
+		return Arrays.asList(asArray());
 	}
 }

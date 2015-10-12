@@ -8,6 +8,7 @@ import shtykh.quedit.author.Authored;
 import shtykh.quedit.author.MultiPerson;
 import shtykh.quedit.author.Person;
 import shtykh.quedit.author.SinglePerson;
+import shtykh.quedit.numerator.QuestionNaturalNumerator;
 import shtykh.util.Jsonable;
 import shtykh.util.Util;
 import shtykh.util.html.form.material.FormMaterial;
@@ -23,6 +24,7 @@ public class PackInfo implements FormMaterial, Authored, Jsonable, _4Sable {
 	private FormParameterMaterial4s nameLJ;
 	private FormParameterMaterial4s date;
 	private MultiPerson author;
+	private QuestionNaturalNumerator numerator;
 
 	public void setTester(MultiPerson tester) {
 		this.tester = tester;
@@ -39,6 +41,7 @@ public class PackInfo implements FormMaterial, Authored, Jsonable, _4Sable {
 		editor = new FormParameterMaterial4s(Type4s.EDITOR, "");
 		author = new MultiPerson();
 		tester = new MultiPerson();
+		numerator = new QuestionNaturalNumerator(1);
 	}
 	
 	public void addAuthor(SinglePerson name) {
@@ -123,6 +126,7 @@ public class PackInfo implements FormMaterial, Authored, Jsonable, _4Sable {
 		String json = pi.toJson();
 		pi = Jsonable.fromJson(json, PackInfo.class);
 		System.out.println(pi);
+		System.out.println(json);
 	}
 
 	public void save(String pathname) {
@@ -176,4 +180,13 @@ public class PackInfo implements FormMaterial, Authored, Jsonable, _4Sable {
 	public void removeTester(SinglePerson singlePerson) {
 		tester.getPersonList().remove(singlePerson);
 	}
+
+	public QuestionNaturalNumerator getNumerator() {
+		return numerator;
+	}
+
+	public void setNumerator(QuestionNaturalNumerator numerator) {
+		this.numerator = numerator;
+	}
+
 }

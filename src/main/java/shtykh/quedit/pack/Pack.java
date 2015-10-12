@@ -9,6 +9,7 @@ import shtykh.quedit._4s._4Sable;
 import shtykh.quedit.author.Authored;
 import shtykh.quedit.author.MultiPerson;
 import shtykh.quedit.author.Person;
+import shtykh.quedit.numerator.NaturalNumerator;
 import shtykh.quedit.numerator.QuestionNaturalNumerator;
 import shtykh.quedit.numerator.QuestionNumerator;
 import shtykh.quedit.question.Question;
@@ -50,7 +51,6 @@ import static shtykh.util.html.form.param.FormParameterType.*;
 public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sable, Authored, UriGenerator {
 	private static final Logger log = Logger.getLogger(Pack.class);
 	private final String id;
-	private QuestionNumerator numerator;
 	private final HtmlHelper htmlHelper;
 	private final AuthorsCatalogue authors;
 	private PackInfo info;
@@ -108,7 +108,7 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 				hrefs.toString() + "<br>" +
 						href(uriPreambula, "Редактировать преамбулу") +
 						questionsTable.toString() + "<br>" +
-						href(uriNew, "Добавить вопрос №" + numerator.getNumber(size())) + "<br>" +
+						href(uriNew, "Добавить вопрос №" + numerator().getNumber(size())) + "<br>" +
 						"";
 		return Response.status(Response.Status.OK).entity(htmlPage(getName(), hrefHome, body)).build();
 	}
@@ -181,10 +181,12 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 			;
 			editPackAction
 					.addParam(PackInfo.class, "name", "Название пакета", text)
-					.addParam(PackInfo.class, "nameLJ", "Название пакета (для ЖЖ)", text)
-					.addParam(PackInfo.class, "date", "Дата", text)
 					.addParam(PackInfo.class, "editor", "Редакторы", comment)
+					.addParam(PackInfo.class, "date", "Дата", text)
 					.addParam(PackInfo.class, "metaInfo", "Слово редактора", textarea)
+					.addParam(NaturalNumerator.class, "zeroNumbers", "Нумерация: номера \"нулевых\" вопросов (каждый с новой строки)", textarea)
+					.addParam(NaturalNumerator.class, "first", "Нумерация: номер первого вопроса", number)
+					.addParam(PackInfo.class, "nameLJ", "Название пакета (для ЖЖ)", text)
 			;
 		} catch (NoSuchFieldException e) {
 			throw new RuntimeException(e);
@@ -205,12 +207,15 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 			 String name,
 			 String nameLJ,
 			 String date,
-			 String metaInfo
+			 String metaInfo,
+			 int first,
+			 String zeroNumbers
 	) {
 		setName(name);
 		setNameLJ(nameLJ);
 		setDate(date);
 		setMetaInfo(metaInfo);
+		setNumerator(new QuestionNaturalNumerator(first, zeroNumbers));
 		return info();
 	}
 
@@ -282,7 +287,7 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 		} else {
 			question.newIndex(index);
 		}
-		question.setNumber(numerator.getNumber(question.index()));
+		question.setNumber(numerator().getNumber(question.index()));
 		String body = questionHtml(question) + editQuestionAction.buildForm(question);
 		return Response
 				.status(Response.Status.OK)
@@ -298,7 +303,7 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 		} else {
 			question.newIndex(index);
 		}
-		question.setNumber(numerator.getNumber(question.index()));
+		question.setNumber(numerator().getNumber(question.index()));
 		question.setAuthors(authors);
 		String body = questionHtml(question) + "<br>"
 				+ editAuthorAction.buildForm(question)
@@ -317,7 +322,7 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 
 	public Response addPicture(String number, String path) {
 		try{
-			int index = numerator.getIndex(number);
+			int index = numerator().getIndex(number);
 			Question q = get(index);
 			q.setUnaudible(q.getUnaudible() + "\nРаздаточный материал: (img " + path + ")");
 			return editForm(index);
@@ -363,7 +368,7 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 		question.setImpossibleAnswers(impossibleAnswers);
 		question.setPossibleAnswers(possibleAnswers);
 		question.setSources(sources);
-		question.setNumber(numerator.getNumber(index));
+		question.setNumber(numerator().getNumber(index));
 		question.setColor(color);
 		add(index, question);
 		return home();
@@ -482,7 +487,7 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 			if (author != null && StringUtils.isNotBlank(author.toString())) {
 				authorString = author.toString();
 			}
-			table.addRow(href(uriColor, numerator.getNumber(i)),
+			table.addRow(href(uriColor, numerator().getNumber(i)),
 					get(i).getAnswer()
 					,href(uriEdit, "Редактировать")
 					,href(uriEditAuthor, authorString)
@@ -499,7 +504,6 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 	@Override
 	protected void initFields() {
 		super.initFields();
-		numerator = new QuestionNaturalNumerator(1);
 		initInfo();
 	}
 
@@ -526,6 +530,11 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 	}
 
 	@Override
+	protected QuestionNumerator numerator() {
+		return info.getNumerator();
+	}
+
+	@Override
 	protected void swap(int key, int key2) {
 		super.swap(key, key2);
 		number(key, get(key2));
@@ -534,7 +543,7 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 
 	private void number(Integer number, Question item) {
 		item.setIndex(number);
-		item.setNumber(numerator.getNumber(number));
+		item.setNumber(numerator().getNumber(number));
 	}
 
 	public Response addEditor(String name) {
@@ -607,7 +616,7 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 		StringBuilder sb = new StringBuilder();
 		sb.append(info.to4s()).append('\n');
 		for (Question question : super.getAll()) {
-			numerator.renumber(question);
+			numerator().renumber(question);
 			sb.append(question.to4s()).append('\n');
 		}
 		return sb.toString();
@@ -658,5 +667,10 @@ public class Pack extends ListCatalogue<Question> implements FormMaterial, _4Sab
 
 	public String getName() {
 		return info.getName();
+	}
+
+	public void setNumerator(QuestionNaturalNumerator numerator) {
+		info.setNumerator(numerator);
+		info.save(infoPath());
 	}
 }

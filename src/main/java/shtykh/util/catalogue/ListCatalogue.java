@@ -1,8 +1,7 @@
 package shtykh.util.catalogue;
 
-import shtykh.util.CSV;
-import shtykh.quedit.numerator.NaturalNumerator;
 import shtykh.quedit.numerator.Numerator;
+import shtykh.util.CSV;
 import shtykh.util.Jsonable;
 import shtykh.util.Util;
 import shtykh.util.html.form.material.FormParameterMaterial;
@@ -19,14 +18,15 @@ import java.util.List;
 public abstract class ListCatalogue<T extends Jsonable & Indexed> extends Catalogue<Integer, T> {
 	private List<T> list;
 
-	private Numerator numerator;
 	public ListCatalogue(Class<T> clazz, String propertyName) {
 		super(clazz, propertyName);
 	}
 
 	protected void refreshKeys() {
-		keys.set(numerator.firstNumbers(size()));
+		keys.set(numerator().firstNumbers(size()));
 	}
+
+	protected abstract Numerator numerator();
 
 	protected void swap(int key, int key2) {
 		Collections.swap(list, key, key2);
@@ -45,7 +45,6 @@ public abstract class ListCatalogue<T extends Jsonable & Indexed> extends Catalo
 	protected void initFields() {
 		list = new ArrayList<>();
 		keys = new FormParameterMaterial<>(new CSV(""), CSV.class);
-		numerator = new NaturalNumerator(1);
 	}
 
 	@Override
